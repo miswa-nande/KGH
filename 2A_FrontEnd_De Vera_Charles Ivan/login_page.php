@@ -433,12 +433,12 @@
                                         <span>OR</span>
                                     </div>
 
-                                    <form id="customerLoginForm">
+                                    <form id="customerLoginForm" action="auth/customer_login.php" method="POST">
                                         <div class="mb-4">
                                             <label for="customerEmail" class="form-label">Email address</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                                <input type="email" class="form-control" id="customerEmail"
+                                                <input type="email" class="form-control" id="customerEmail" name="email"
                                                     placeholder="Enter your email" required>
                                             </div>
                                         </div>
@@ -446,7 +446,7 @@
                                             <label for="customerPassword" class="form-label">Password</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                                <input type="password" class="form-control" id="customerPassword"
+                                                <input type="password" class="form-control" id="customerPassword" name="password"
                                                     placeholder="Enter your password" required>
                                                 <span class="input-group-text toggle-password" style="cursor: pointer;">
                                                     <i class="fas fa-eye-slash"></i>
@@ -476,12 +476,12 @@
 
                                 <!-- Admin Login Form -->
                                 <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
-                                    <form id="adminLoginForm">
+                                    <form id="adminLoginForm" action="auth/admin_login.php" method="POST">
                                         <div class="mb-4">
                                             <label for="adminEmail" class="form-label">Email</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                                <input type="email" class="form-control" id="adminEmail"
+                                                <input type="email" class="form-control" id="adminEmail" name="email"
                                                     placeholder="Enter admin email" required>
                                             </div>
                                         </div>
@@ -489,7 +489,7 @@
                                             <label for="adminPassword" class="form-label">Password</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                                <input type="password" class="form-control" id="adminPassword"
+                                                <input type="password" class="form-control" id="adminPassword" name="password"
                                                     placeholder="Enter admin password" required>
                                                 <span class="input-group-text admin-toggle-password"
                                                     style="cursor: pointer;">
@@ -538,37 +538,8 @@
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <!-- Firebase Auth -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <!-- Firebase Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
     <!-- Custom JS -->
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAoMigjt6vI20hsqWy71YRKTSTut0NeM9Y",
-            authDomain: "kgh-hub.firebaseapp.com",
-            projectId: "kgh-hub",
-            storageBucket: "kgh-hub.firebasestorage.app",
-            messagingSenderId: "855033685100",
-            appId: "1:855033685100:web:a3e3b995507c6315a52449",
-            measurementId: "G-H31F0G6SER"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-
-        // Get references to Firebase services
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // Collection references
-        const usersCollection = db.collection('users');
-        const adminsCollection = db.collection('admins');
-
         document.addEventListener('DOMContentLoaded', function () {
             // UI Elements
             const loginAlert = document.getElementById('login-alert');

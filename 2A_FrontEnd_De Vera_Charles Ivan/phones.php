@@ -12,78 +12,8 @@
     <!-- Animation CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="design.css">
-    <style>
-        /* Added animations and improved flow */
-        .product-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            margin-bottom: 25px;
-            border: 1px solid rgba(0, 0, 0, 0.125);
-            overflow: hidden;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .product-card img {
-            transition: transform 0.5s ease;
-        }
-
-        .product-card:hover img {
-            transform: scale(1.05);
-        }
-
-        .fade-in {
-            animation: fadeIn 0.8s ease;
-        }
-
-        .add-to-cart {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .add-to-cart:hover {
-            transform: translateY(-2px);
-        }
-
-        .badge {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .navbar-brand {
-            transition: color 0.3s ease;
-        }
-
-        .navbar-brand:hover {
-            color: #ffc107 !important;
-        }
-
-        .filter-sidebar {
-            border-radius: 10px;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border: 1px solid #eee;
-        }
-
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-    </style>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/phones.css">
 </head>
 
 <body>
