@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Kushy Gadget Hub</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #D4AF37;
+            --secondary-color: #222222;
+            --accent-color: #FF9BB3;
+            --text-light: #FFFFFF;
+            --text-dark: #333333;
+            --bg-dark: #1A1A1A;
+            --bg-light: #f8f9fa;
+            --bg-gold-gradient: linear-gradient(135deg, #D4AF37 0%, #F5E8A9 50%, #D4AF37 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background: var(--bg-dark);
+            border-bottom: 3px solid var(--primary-color);
+            padding: 15px 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color) !important;
+            letter-spacing: 1px;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+
+        .login-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+            background: url('/api/placeholder/1920/1080') center/cover no-repeat;
+            position: relative;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .login-card {
+            max-width: 480px;
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            background-color: white;
+            position: relative;
+            z-index: 2;
+            border: none;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-header {
+            background: var(--bg-gold-gradient);
+            color: var(--bg-dark);
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .login-header h3 {
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 1.75rem;
+        }
+
+        .login-header p {
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .form-control {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 12px 20px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            background-color: #c09c2c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(192, 156, 44, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(192, 156, 44, 0.4);
+        }
+
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: scale(0) translate(-50%, -50%);
+            transform-origin: left top;
+            opacity: 0;
+        }
+
+        .btn-primary:active::after {
+            animation: ripple 0.6s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0) translate(-50%, -50%);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(20) translate(-50%, -50%);
+                opacity: 0;
+            }
+        }
+
+        .btn-link {
+            color: var(--primary-color);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-link:hover {
+            color: #c09c2c;
+            text-decoration: underline !important;
+            transform: translateY(-1px);
+        }
+
+        .footer {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            padding: 25px 0;
+            margin-top: auto;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .footer a {
+            color: var(--text-light);
+            transition: color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-tabs {
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 25px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+            padding: 12px 20px;
+            border-radius: 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover:not(.active) {
+            color: #333;
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            font-weight: 600;
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-color);
+            animation: slideIn 0.3s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                width: 0;
+                left: 50%;
+            }
+
+            to {
+                width: 100%;
+                left: 0;
+            }
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .form-check-label {
+            font-size: 0.9rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #6c757d;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 0.9rem;
+        }
+
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn.fb {
+            background-color: #3b5998;
+        }
+
+        .social-btn.google {
+            background-color: #dd4b39;
+        }
+
+        .social-btn.apple {
+            background-color: #000;
+        }
+
+        .social-btn:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .social-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        .alert {
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .input-group-text {
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus+.input-group-text,
+        .input-group:focus-within .input-group-text {
+            border-color: var(--primary-color);
+            background-color: rgba(212, 175, 55, 0.1);
+        }
+
+        .tab-pane {
+            animation: fadeTab 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeTab {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-mobile-alt me-2"></i> KGH HUB
+            </a>
+        </div>
+    </nav>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="login-card">
+                        <div class="login-header">
+                            <h3>Welcome Back</h3>
+                            <p class="mb-0">Sign in to access your account</p>
+                        </div>
+                        <div class="login-body">
+                            <!-- Alert for messages -->
+                            <div id="login-alert" class="alert alert-danger d-none" role="alert"></div>
+                            <div id="login-success" class="alert alert-success d-none" role="alert"></div>
+
+                            <!-- Login Tabs -->
+                            <ul class="nav nav-tabs nav-fill" id="loginTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="customer-tab" data-bs-toggle="tab"
+                                        data-bs-target="#customer" type="button" role="tab" aria-controls="customer"
+                                        aria-selected="true">Customer</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin"
+                                        type="button" role="tab" aria-controls="admin"
+                                        aria-selected="false">Admin</button>
+                                </li>
+                            </ul>
+
+                            <!-- Tab Content -->
+                            <div class="tab-content" id="loginTabContent">
+                                <!-- Customer Login Form -->
+                                <div class="tab-pane fade show active" id="customer" role="tabpanel"
+                                    aria-labelledby="customer-tab">
+                                    <!-- Social Login Buttons -->
+                                    <div class="social-login mb-4">
+                                        <a href="#" id="facebookLogin" class="social-btn fb"><i
+                                                class="fab fa-facebook-f"></i></a>
+                                        <a href="#" id="googleLogin" class="social-btn google"><i
+                                                class="fab fa-google"></i></a>
+                                        <a href="#" id="appleLogin" class="social-btn apple"><i
+                                                class="fab fa-apple"></i></a>
+                                    </div>
+
+                                    <div class="divider">
+                                        <span>OR</span>
+                                    </div>
+
+                                    <form id="customerLoginForm">
+                                        <div class="mb-4">
+                                            <label for="customerEmail" class="form-label">Email address</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                                <input type="email" class="form-control" id="customerEmail"
+                                                    placeholder="Enter your email" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label for="customerPassword" class="form-label">Password</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                <input type="password" class="form-control" id="customerPassword"
+                                                    placeholder="Enter your password" required>
+                                                <span class="input-group-text toggle-password" style="cursor: pointer;">
+                                                    <i class="fas fa-eye-slash"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="customerRemember">
+                                                <label class="form-check-label" for="customerRemember">
+                                                    Remember me
+                                                </label>
+                                            </div>
+                                            <a href="forgot pass.html" id="forgotPassword"
+                                                class="btn-link text-decoration-none">Forgot
+                                                password?</a>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100 py-3">Sign In</button>
+                                        <div class="text-center mt-4">
+                                            <span>Don't have an account? </span>
+                                            <a href="sign up.html" id="signupLink"
+                                                class="btn-link text-decoration-none">Sign
+                                                Up</a>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Admin Login Form -->
+                                <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
+                                    <form id="adminLoginForm">
+                                        <div class="mb-4">
+                                            <label for="adminEmail" class="form-label">Email</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                                <input type="email" class="form-control" id="adminEmail"
+                                                    placeholder="Enter admin email" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label for="adminPassword" class="form-label">Password</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                <input type="password" class="form-control" id="adminPassword"
+                                                    placeholder="Enter admin password" required>
+                                                <span class="input-group-text admin-toggle-password"
+                                                    style="cursor: pointer;">
+                                                    <i class="fas fa-eye-slash"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="adminRemember">
+                                                <label class="form-check-label" for="adminRemember">
+                                                    Remember me
+                                                </label>
+                                            </div>
+                                            <a href="forgot-password.html" id="adminForgotPassword"
+                                                class="btn-link text-decoration-none">Forgot password?</a>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100 py-3">Admin Login</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; 2025 Kushy Gadget Hub. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <ul class="list-inline mb-0">
+                        <li class="list-inline-item me-3"><a href="terms.html">Terms of Service</a></li>
+                        <li class="list-inline-item"><a href="privacy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <!-- Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Custom JS -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAoMigjt6vI20hsqWy71YRKTSTut0NeM9Y",
+            authDomain: "kgh-hub.firebaseapp.com",
+            projectId: "kgh-hub",
+            storageBucket: "kgh-hub.firebasestorage.app",
+            messagingSenderId: "855033685100",
+            appId: "1:855033685100:web:a3e3b995507c6315a52449",
+            measurementId: "G-H31F0G6SER"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Get references to Firebase services
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Collection references
+        const usersCollection = db.collection('users');
+        const adminsCollection = db.collection('admins');
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // UI Elements
+            const loginAlert = document.getElementById('login-alert');
+            const loginSuccess = document.getElementById('login-success');
+            const togglePasswordBtns = document.querySelectorAll('.toggle-password, .admin-toggle-password');
+
+            // Toggle password visibility
+            togglePasswordBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const input = this.previousElementSibling;
+                    const icon = this.querySelector('i');
+
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    }
+                });
+            });
+
+            // Function to show error message with animation
+            function showError(message) {
+                loginAlert.textContent = message;
+                loginAlert.style.opacity = '0';
+                loginAlert.classList.remove('d-none');
+
+                setTimeout(() => {
+                    loginAlert.style.opacity = '1';
+                }, 10);
+
+                setTimeout(() => {
+                    loginAlert.style.opacity = '0';
+                    setTimeout(() => {
+                        loginAlert.classList.add('d-none');
+                    }, 300);
+                }, 5000);
+            }
+
+            // Function to show success message with animation
+            function showSuccess(message) {
+                loginSuccess.textContent = message;
+                loginSuccess.style.opacity = '0';
+                loginSuccess.classList.remove('d-none');
+
+                setTimeout(() => {
+                    loginSuccess.style.opacity = '1';
+                }, 10);
+
+                setTimeout(() => {
+                    loginSuccess.style.opacity = '0';
+                    setTimeout(() => {
+                        loginSuccess.classList.add('d-none');
+                    }, 300);
+                }, 3000);
+            }
+
+            // Customer Login Form Submission
+            const customerForm = document.getElementById('customerLoginForm');
+            if (customerForm) {
+                customerForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Signing In...';
+                    submitBtn.disabled = true;
+
+                    const email = document.getElementById('customerEmail').value;
+                    const password = document.getElementById('customerPassword').value;
+                    const remember = document.getElementById('customerRemember').checked;
+
+                    // Sign in with Firebase Auth
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            // Check if the user is a customer (not an admin)
+                            const user = userCredential.user;
+                            return usersCollection.doc(user.uid).get()
+                                .then(doc => {
+                                    if (doc.exists) {
+                                        // User is a customer
+                                        // Set persistence based on "remember me" checkbox
+                                        const persistence = remember ?
+                                            firebase.auth.Auth.Persistence.LOCAL :
+                                            firebase.auth.Auth.Persistence.SESSION;
+
+                                        return auth.setPersistence(persistence)
+                                            .then(() => {
+                                                showSuccess('Login successful! Redirecting...');
+
+                                                // Update last login timestamp
+                                                usersCollection.doc(user.uid).update({
+                                                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                                                });
+
+                                                // Redirect to home page after short delay
+                                                setTimeout(() => {
+                                                    window.location.href = 'index.html';
+                                                }, 1500);
+                                            });
+                                    } else {
+                                        // User exists in Firebase Auth but not in the customers collection
+                                        submitBtn.innerHTML = 'Sign In';
+                                        submitBtn.disabled = false;
+                                        showError('Invalid account type. Please use customer login.');
+                                        auth.signOut();
+                                    }
+                                });
+                        })
+                        .catch((error) => {
+                            // Reset button state
+                            submitBtn.innerHTML = 'Sign In';
+                            submitBtn.disabled = false;
+
+                            // Handle errors
+                            switch (error.code) {
+                                case 'auth/user-not-found':
+                                    showError('No account found with this email');
+                                    break;
+                                case 'auth/wrong-password':
+                                    showError('Incorrect password');
+                                    break;
+                                case 'auth/invalid-email':
+                                    showError('Invalid email format');
+                                    break;
+                                case 'auth/too-many-requests':
+                                    showError('Too many failed login attempts. Please try again later');
+                                    break;
+                                default:
+                                    showError('Login failed: ' + error.message);
+                            }
+                            console.error('Login error:', error);
+                        });
+                });
+            }
+
+            // Admin Login Form Submission
+            const adminForm = document.getElementById('adminLoginForm');
+            if (adminForm) {
+                adminForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Signing In...';
+                    submitBtn.disabled = true;
+
+                    const email = document.getElementById('adminEmail').value;
+                    const password = document.getElementById('adminPassword').value;
+                    const remember = document.getElementById('adminRemember').checked;
+
+                    // Sign in with Firebase Auth
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            // Check if the user is an admin
+                            const user = userCredential.user;
+                            return adminsCollection.doc(user.uid).get()
+                                .then(doc => {
+                                    if (doc.exists) {
+                                        // User is an admin
+                                        // Set persistence based on "remember me" checkbox
+                                        const persistence = remember ?
+                                            firebase.auth.Auth.Persistence.LOCAL :
+                                            firebase.auth.Auth.Persistence.SESSION;
+
+                                        return auth.setPersistence(persistence)
+                                            .then(() => {
+                                                showSuccess('Admin login successful! Redirecting...');
+
+                                                // Update last login timestamp
+                                                adminsCollection.doc(user.uid).update({
+                                                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                                                });
+
+                                                // Redirect to admin dashboard after short delay
+                                                setTimeout(() => {
+                                                    window.location.href = 'admin-dashboard.html';
+                                                }, 1500);
+                                            });
+                                    } else {
+                                        // User exists in Firebase Auth but not in the admins collection
+                                        submitBtn.innerHTML = 'Admin Login';
+                                        submitBtn.disabled = false;
+                                        showError('Invalid admin credentials');
+                                        auth.signOut();
+                                    }
+                                });
+                        })
+                        .catch((error) => {
+                            // Reset button state
+                            submitBtn.innerHTML = 'Admin Login';
+                            submitBtn.disabled = false;
+
+                            // Handle errors
+                            switch (error.code) {
+                                case 'auth/user-not-found':
+                                    showError('No admin account found with this email');
+                                    break;
+                                case 'auth/wrong-password':
+                                    showError('Incorrect password');
+                                    break;
+                                case 'auth/invalid-email':
+                                    showError('Invalid email format');
+                                    break;
+                                case 'auth/too-many-requests':
+                                    showError('Too many failed login attempts. Please try again later');
+                                    break;
+                                default:
+                                    showError('Login failed: ' + error.message);
+                            }
+                            console.error('Admin login error:', error);
+                        });
+                });
+            }
+
+            // Social Login Handlers with loading indicators
+            document.getElementById('googleLogin').addEventListener('click', function (e) {
+                e.preventDefault();
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.style.pointerEvents = 'none';
+
+                const provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        const user = result.user;
+                        // Check if user exists in our database
+                        return usersCollection.doc(user.uid).get()
+                            .then(doc => {
+                                if (doc.exists) {
+                                    // User exists, update last login
+                                    return usersCollection.doc(user.uid).update({
+                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                                    }).then(() => {
+                                        showSuccess('Login successful! Redirecting...');
+                                        setTimeout(() => {
+                                            window.location.href = 'index.html';
+                                        }, 1500);
+                                    });
+                                } else {
+                                    // New user, create profile
+                                    return usersCollection.doc(user.uid).set({
+                                        uid: user.uid,
+                                        email: user.email,
+                                        displayName: user.displayName,
+                                        photoURL: user.photoURL,
+                                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                                        provider: 'google'
+                                    }).then(() => {
+                                        showSuccess('Account created! Redirecting...');
+                                        setTimeout(() => {
+                                            window.location.href = 'index.html';
+                                        }, 1500);
+                                    });
+                                }
+                            });
+                    }).catch((error) => {
+                        // Rest of the Google login handler
+                        this.innerHTML = '<i class="fab fa-google"></i>';
+                        this.style.pointerEvents = 'auto';
+                        showError('Google login failed: ' + error.message);
+                        console.error('Google sign-in error:', error);
+                    });
+            });
+
+            document.getElementById('facebookLogin').addEventListener('click', function (e) {
+                e.preventDefault();
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.style.pointerEvents = 'none';
+
+                const provider = new firebase.auth.FacebookAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        const user = result.user;
+                        // Check if user exists in our database
+                        return usersCollection.doc(user.uid).get()
+                            .then(doc => {
+                                if (doc.exists) {
+                                    // User exists, update last login
+                                    return usersCollection.doc(user.uid).update({
+                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                                    }).then(() => {
+                                        showSuccess('Login successful! Redirecting...');
+                                        setTimeout(() => {
+                                            window.location.href = 'index.html';
+                                        }, 1500);
+                                    });
+                                } else {
+                                    // New user, create profile
+                                    return usersCollection.doc(user.uid).set({
+                                        uid: user.uid,
+                                        email: user.email,
+                                        displayName: user.displayName,
+                                        photoURL: user.photoURL,
+                                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                                        provider: 'facebook'
+                                    }).then(() => {
+                                        showSuccess('Account created! Redirecting...');
+                                        setTimeout(() => {
+                                            window.location.href = 'index.html';
+                                        }, 1500);
+                                    });
+                                }
+                            });
+                    }).catch((error) => {
+                        this.innerHTML = '<i class="fab fa-facebook-f"></i>';
+                        this.style.pointerEvents = 'auto';
+                        showError('Facebook login failed: ' + error.message);
+                        console.error('Facebook sign-in error:', error);
+                    });
+            });
+
+            document.getElementById('appleLogin').addEventListener('click', function (e) {
+                e.preventDefault();
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.style.pointerEvents = 'none';
+
+                const provider = new firebase.auth.OAuthProvider('apple.com');
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        const user = result.user;
+                        // Check if user exists in our database
+                        return usersCollection.doc(user.uid).get()
+                            .then(doc => {
+                                if (doc.exists) {
+                                    // User exists, update last login
+                                    return usersCollection.doc(user.uid).update({
+                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                                    }).then(() => {
+                                        showSuccess('Login successful! Redirecting...');
+                                        setTimeout(() => {
+                                            window.location.href = 'index.html';
+                                        }, 1500);
+                                    });
+                                } else {
+                                    // New user, create profile
+                                    return usersCollection.doc(user.uid).set({
+                                        uid: user.uid,
+                                        email: user.email,
+                                        displayName: user.displayName || 'Apple User',
+                                        photoURL: user.photoURL,
+                                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                                        provider: 'apple'
+                                    }).then(() => {
+                                        showSuccess('Account created! Redirecting...');
+                                        setTimeout(() => {
+                                            window.location.href = 'index.html';
+                                        }, 1500);
+                                    });
+                                }
+                            });
+                    }).catch((error) => {
+                        this.innerHTML = '<i class="fab fa-apple"></i>';
+                        this.style.pointerEvents = 'auto';
+                        showError('Apple login failed: ' + error.message);
+                        console.error('Apple sign-in error:', error);
+                    });
+            });
+
+            // Password Reset (Forgot Password)
+            document.getElementById('forgotPassword').addEventListener('click', function (e) {
+                e.preventDefault();
+                const email = document.getElementById('customerEmail').value;
+
+                if (!email) {
+                    showError('Please enter your email address first');
+                    return;
+                }
+
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Sending...';
+                this.disabled = true;
+
+                auth.sendPasswordResetEmail(email)
+                    .then(() => {
+                        this.innerHTML = 'Forgot password?';
+                        this.disabled = false;
+                        showSuccess('Password reset email sent! Check your inbox.');
+                    })
+                    .catch((error) => {
+                        this.innerHTML = 'Forgot password?';
+                        this.disabled = false;
+                        showError('Failed to send reset email: ' + error.message);
+                    });
+            });
+
+            document.getElementById('adminForgotPassword').addEventListener('click', function (e) {
+                e.preventDefault();
+                const email = document.getElementById('adminEmail').value;
+
+                if (!email) {
+                    showError('Please enter your email address first');
+                    return;
+                }
+
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Sending...';
+                this.disabled = true;
+
+                auth.sendPasswordResetEmail(email)
+                    .then(() => {
+                        this.innerHTML = 'Forgot password?';
+                        this.disabled = false;
+                        showSuccess('Password reset email sent! Check your inbox.');
+                    })
+                    .catch((error) => {
+                        this.innerHTML = 'Forgot password?';
+                        this.disabled = false;
+                        showError('Failed to send reset email: ' + error.message);
+                    });
+            });
+
+            // Add tab change animation
+            const tabLinks = document.querySelectorAll('.nav-link');
+            tabLinks.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    const targetId = this.getAttribute('data-bs-target').substring(1);
+                    const targetPane = document.getElementById(targetId);
+
+                    if (targetPane) {
+                        targetPane.style.opacity = '0';
+                        targetPane.style.transform = 'translateY(10px)';
+
+                        setTimeout(() => {
+                            targetPane.style.opacity = '1';
+                            targetPane.style.transform = 'translateY(0)';
+                        }, 150);
+                    }
+                });
+            });
+
+            // Check Authentication State
+            auth.onAuthStateChanged(function (user) {
+                if (user) {
+                    // User is already signed in
+                    // Check which type of user it is
+                    Promise.all([
+                        usersCollection.doc(user.uid).get(),
+                        adminsCollection.doc(user.uid).get()
+                    ]).then(([userDoc, adminDoc]) => {
+                        if (userDoc.exists) {
+                            // Redirect customer to home page
+                            window.location.href = 'index.html';
+                        } else if (adminDoc.exists) {
+                            // Redirect admin to dashboard
+                            window.location.href = 'admin-dashboard.html';
+                        }
+                    }).catch(error => {
+                        console.error('Error checking user type:', error);
+                    });
+                }
+            });
+        })
+    </script>
+</body>
+
+</html>
