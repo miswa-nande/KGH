@@ -1,3 +1,59 @@
+<?php
+session_start();
+require_once 'conn.php';
+
+// If user is already logged in, redirect to home
+if (isset($_SESSION['user_id'])) {
+    header("Location: home.php");
+    exit;
+}
+
+// Handle login form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    header('Content-Type: application/json');
+    
+    $email = escapeString($_POST['email']);
+    $password = $_POST['password'];
+    
+    // Initialize response
+    $response = ['status' => '', 'message' => ''];
+    
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $response = ['status' => 'error', 'message' => 'Invalid email format!'];
+    } else {
+        // Check if user exists
+        $sql = "SELECT * FROM users WHERE email = '$email'";
+        $result = executeQuery($sql);
+        
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+            
+            // Verify password
+            if (password_verify($password, $user['password'])) {
+                // Set session variables
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+                $_SESSION['user_type'] = $user['type'];
+                
+                $response = [
+                    'status' => 'success',
+                    'message' => 'Login successful!',
+                    'redirect' => 'home.php'
+                ];
+            } else {
+                $response = ['status' => 'error', 'message' => 'Invalid password!'];
+            }
+        } else {
+            $response = ['status' => 'error', 'message' => 'Email not found!'];
+        }
+    }
+    
+    echo json_encode($response);
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -342,9 +398,28 @@
         }
 
         .alert {
+            display: none;
+            margin-bottom: 20px;
+            padding: 15px;
             border-radius: 8px;
-            font-size: 0.9rem;
-            transition: opacity 0.3s ease;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        #loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
         }
 
         .input-group-text {
@@ -379,7 +454,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="index.html">
+            <a class="navbar-brand" href="index.php">
                 <i class="fas fa-mobile-alt me-2"></i> KGH HUB
             </a>
         </div>
@@ -389,128 +464,55 @@
     <div class="login-container">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-md-6">
+                <div class="col-md-6 col-lg-5">
                     <div class="login-card">
                         <div class="login-header">
-                            <h3>Welcome Back</h3>
-                            <p class="mb-0">Sign in to access your account</p>
+                            <h3>Welcome Back!</h3>
+                            <p>Sign in to your account</p>
                         </div>
                         <div class="login-body">
-                            <!-- Alert for messages -->
-                            <div id="login-alert" class="alert alert-danger d-none" role="alert"></div>
-                            <div id="login-success" class="alert alert-success d-none" role="alert"></div>
-
-                            <!-- Login Tabs -->
-                            <ul class="nav nav-tabs nav-fill" id="loginTabs" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="customer-tab" data-bs-toggle="tab"
-                                        data-bs-target="#customer" type="button" role="tab" aria-controls="customer"
-                                        aria-selected="true">Customer</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin"
-                                        type="button" role="tab" aria-controls="admin"
-                                        aria-selected="false">Admin</button>
-                                </li>
-                            </ul>
-
-                            <!-- Tab Content -->
-                            <div class="tab-content" id="loginTabContent">
-                                <!-- Customer Login Form -->
-                                <div class="tab-pane fade show active" id="customer" role="tabpanel"
-                                    aria-labelledby="customer-tab">
-                                    <!-- Social Login Buttons -->
-                                    <div class="social-login mb-4">
-                                        <a href="#" id="facebookLogin" class="social-btn fb"><i
-                                                class="fab fa-facebook-f"></i></a>
-                                        <a href="#" id="googleLogin" class="social-btn google"><i
-                                                class="fab fa-google"></i></a>
-                                        <a href="#" id="appleLogin" class="social-btn apple"><i
-                                                class="fab fa-apple"></i></a>
-                                    </div>
-
-                                    <div class="divider">
-                                        <span>OR</span>
-                                    </div>
-
-                                    <form id="customerLoginForm" action="auth/customer_login.php" method="POST">
-                                        <div class="mb-4">
-                                            <label for="customerEmail" class="form-label">Email address</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                                <input type="email" class="form-control" id="customerEmail" name="email"
-                                                    placeholder="Enter your email" required>
-                                            </div>
-                                        </div>
-                                        <div class="mb-4">
-                                            <label for="customerPassword" class="form-label">Password</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                                <input type="password" class="form-control" id="customerPassword" name="password"
-                                                    placeholder="Enter your password" required>
-                                                <span class="input-group-text toggle-password" style="cursor: pointer;">
-                                                    <i class="fas fa-eye-slash"></i>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex justify-content-between mb-4">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="customerRemember">
-                                                <label class="form-check-label" for="customerRemember">
-                                                    Remember me
-                                                </label>
-                                            </div>
-                                            <a href="forgot pass.html" id="forgotPassword"
-                                                class="btn-link text-decoration-none">Forgot
-                                                password?</a>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary w-100 py-3">Sign In</button>
-                                        <div class="text-center mt-4">
-                                            <span>Don't have an account? </span>
-                                            <a href="sign up.php" id="signupLink"
-                                                class="btn-link text-decoration-none">Sign
-                                                Up</a>
-                                        </div>
-                                    </form>
+                            <!-- Alert Messages -->
+                            <div id="alertMessage" class="alert"></div>
+                            
+                            <!-- Loader -->
+                            <div id="loader">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
                                 </div>
-
-                                <!-- Admin Login Form -->
-                                <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
-                                    <form id="adminLoginForm" action="auth/admin_login.php" method="POST">
-                                        <div class="mb-4">
-                                            <label for="adminEmail" class="form-label">Email</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                                <input type="email" class="form-control" id="adminEmail" name="email"
-                                                    placeholder="Enter admin email" required>
-                                            </div>
-                                        </div>
-                                        <div class="mb-4">
-                                            <label for="adminPassword" class="form-label">Password</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                                <input type="password" class="form-control" id="adminPassword" name="password"
-                                                    placeholder="Enter admin password" required>
-                                                <span class="input-group-text admin-toggle-password"
-                                                    style="cursor: pointer;">
-                                                    <i class="fas fa-eye-slash"></i>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex justify-content-between mb-4">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="adminRemember">
-                                                <label class="form-check-label" for="adminRemember">
-                                                    Remember me
-                                                </label>
-                                            </div>
-                                            <a href="forgot-password.html" id="adminForgotPassword"
-                                                class="btn-link text-decoration-none">Forgot password?</a>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary w-100 py-3">Admin Login</button>
-                                    </form>
-                                </div>
+                                <p class="mt-2">Signing in...</p>
                             </div>
+                            
+                            <!-- Login Form -->
+                            <form id="loginForm" method="POST">
+                                <div class="mb-4">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="password" class="form-label">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                                        <span class="input-group-text toggle-password" style="cursor: pointer;" title="Show/Hide Password">
+                                            <i class="fas fa-eye-slash"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">Remember me</label>
+                                    </div>
+                                    <a href="forgot_password.php" class="btn-link">Forgot Password?</a>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 mb-3">Sign In</button>
+                                <div class="text-center">
+                                    <p class="mb-0">Don't have an account? <a href="sign up.php" class="btn-link">Sign Up</a></p>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -522,478 +524,84 @@
     <footer class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">&copy; 2025 Kushy Gadget Hub. All rights reserved.</p>
+                <div class="col-md-6">
+                    <p>&copy; 2024 Kushy Gadget Hub. All rights reserved.</p>
                 </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <ul class="list-inline mb-0">
-                        <li class="list-inline-item me-3"><a href="terms.html">Terms of Service</a></li>
-                        <li class="list-inline-item"><a href="privacy.html">Privacy Policy</a></li>
-                    </ul>
+                <div class="col-md-6 text-md-end">
+                    <a href="privacy.php">Privacy Policy</a> | <a href="terms.php">Terms of Service</a>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS Bundle with Popper -->
+    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Custom JS -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // UI Elements
-            const loginAlert = document.getElementById('login-alert');
-            const loginSuccess = document.getElementById('login-success');
-            const togglePasswordBtns = document.querySelectorAll('.toggle-password, .admin-toggle-password');
-
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const alertMessage = document.getElementById('alertMessage');
+            const loader = document.getElementById('loader');
+            const togglePassword = document.querySelector('.toggle-password');
+            
             // Toggle password visibility
-            togglePasswordBtns.forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const input = this.previousElementSibling;
-                    const icon = this.querySelector('i');
-
-                    if (input.type === 'password') {
-                        input.type = 'text';
-                        icon.classList.remove('fa-eye-slash');
-                        icon.classList.add('fa-eye');
-                    } else {
-                        input.type = 'password';
-                        icon.classList.remove('fa-eye');
-                        icon.classList.add('fa-eye-slash');
-                    }
-                });
-            });
-
-            // Function to show error message with animation
-            function showError(message) {
-                loginAlert.textContent = message;
-                loginAlert.style.opacity = '0';
-                loginAlert.classList.remove('d-none');
-
-                setTimeout(() => {
-                    loginAlert.style.opacity = '1';
-                }, 10);
-
-                setTimeout(() => {
-                    loginAlert.style.opacity = '0';
-                    setTimeout(() => {
-                        loginAlert.classList.add('d-none');
-                    }, 300);
-                }, 5000);
-            }
-
-            // Function to show success message with animation
-            function showSuccess(message) {
-                loginSuccess.textContent = message;
-                loginSuccess.style.opacity = '0';
-                loginSuccess.classList.remove('d-none');
-
-                setTimeout(() => {
-                    loginSuccess.style.opacity = '1';
-                }, 10);
-
-                setTimeout(() => {
-                    loginSuccess.style.opacity = '0';
-                    setTimeout(() => {
-                        loginSuccess.classList.add('d-none');
-                    }, 300);
-                }, 3000);
-            }
-
-            // Customer Login Form Submission
-            const customerForm = document.getElementById('customerLoginForm');
-            if (customerForm) {
-                customerForm.addEventListener('submit', function (event) {
-                    event.preventDefault();
-
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Signing In...';
-                    submitBtn.disabled = true;
-
-                    const email = document.getElementById('customerEmail').value;
-                    const password = document.getElementById('customerPassword').value;
-                    const remember = document.getElementById('customerRemember').checked;
-
-                    // Sign in with Firebase Auth
-                    auth.signInWithEmailAndPassword(email, password)
-                        .then((userCredential) => {
-                            // Check if the user is a customer (not an admin)
-                            const user = userCredential.user;
-                            return usersCollection.doc(user.uid).get()
-                                .then(doc => {
-                                    if (doc.exists) {
-                                        // User is a customer
-                                        // Set persistence based on "remember me" checkbox
-                                        const persistence = remember ?
-                                            firebase.auth.Auth.Persistence.LOCAL :
-                                            firebase.auth.Auth.Persistence.SESSION;
-
-                                        return auth.setPersistence(persistence)
-                                            .then(() => {
-                                                showSuccess('Login successful! Redirecting...');
-
-                                                // Update last login timestamp
-                                                usersCollection.doc(user.uid).update({
-                                                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                                                });
-
-                                                // Redirect to home page after short delay
-                                                setTimeout(() => {
-                                                    window.location.href = 'index.html';
-                                                }, 1500);
-                                            });
-                                    } else {
-                                        // User exists in Firebase Auth but not in the customers collection
-                                        submitBtn.innerHTML = 'Sign In';
-                                        submitBtn.disabled = false;
-                                        showError('Invalid account type. Please use customer login.');
-                                        auth.signOut();
-                                    }
-                                });
-                        })
-                        .catch((error) => {
-                            // Reset button state
-                            submitBtn.innerHTML = 'Sign In';
-                            submitBtn.disabled = false;
-
-                            // Handle errors
-                            switch (error.code) {
-                                case 'auth/user-not-found':
-                                    showError('No account found with this email');
-                                    break;
-                                case 'auth/wrong-password':
-                                    showError('Incorrect password');
-                                    break;
-                                case 'auth/invalid-email':
-                                    showError('Invalid email format');
-                                    break;
-                                case 'auth/too-many-requests':
-                                    showError('Too many failed login attempts. Please try again later');
-                                    break;
-                                default:
-                                    showError('Login failed: ' + error.message);
-                            }
-                            console.error('Login error:', error);
-                        });
-                });
-            }
-
-            // Admin Login Form Submission
-            const adminForm = document.getElementById('adminLoginForm');
-            if (adminForm) {
-                adminForm.addEventListener('submit', function (event) {
-                    event.preventDefault();
-
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Signing In...';
-                    submitBtn.disabled = true;
-
-                    const email = document.getElementById('adminEmail').value;
-                    const password = document.getElementById('adminPassword').value;
-                    const remember = document.getElementById('adminRemember').checked;
-
-                    // Sign in with Firebase Auth
-                    auth.signInWithEmailAndPassword(email, password)
-                        .then((userCredential) => {
-                            // Check if the user is an admin
-                            const user = userCredential.user;
-                            return adminsCollection.doc(user.uid).get()
-                                .then(doc => {
-                                    if (doc.exists) {
-                                        // User is an admin
-                                        // Set persistence based on "remember me" checkbox
-                                        const persistence = remember ?
-                                            firebase.auth.Auth.Persistence.LOCAL :
-                                            firebase.auth.Auth.Persistence.SESSION;
-
-                                        return auth.setPersistence(persistence)
-                                            .then(() => {
-                                                showSuccess('Admin login successful! Redirecting...');
-
-                                                // Update last login timestamp
-                                                adminsCollection.doc(user.uid).update({
-                                                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                                                });
-
-                                                // Redirect to admin dashboard after short delay
-                                                setTimeout(() => {
-                                                    window.location.href = 'admin-dashboard.html';
-                                                }, 1500);
-                                            });
-                                    } else {
-                                        // User exists in Firebase Auth but not in the admins collection
-                                        submitBtn.innerHTML = 'Admin Login';
-                                        submitBtn.disabled = false;
-                                        showError('Invalid admin credentials');
-                                        auth.signOut();
-                                    }
-                                });
-                        })
-                        .catch((error) => {
-                            // Reset button state
-                            submitBtn.innerHTML = 'Admin Login';
-                            submitBtn.disabled = false;
-
-                            // Handle errors
-                            switch (error.code) {
-                                case 'auth/user-not-found':
-                                    showError('No admin account found with this email');
-                                    break;
-                                case 'auth/wrong-password':
-                                    showError('Incorrect password');
-                                    break;
-                                case 'auth/invalid-email':
-                                    showError('Invalid email format');
-                                    break;
-                                case 'auth/too-many-requests':
-                                    showError('Too many failed login attempts. Please try again later');
-                                    break;
-                                default:
-                                    showError('Login failed: ' + error.message);
-                            }
-                            console.error('Admin login error:', error);
-                        });
-                });
-            }
-
-            // Social Login Handlers with loading indicators
-            document.getElementById('googleLogin').addEventListener('click', function (e) {
-                e.preventDefault();
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                this.style.pointerEvents = 'none';
-
-                const provider = new firebase.auth.GoogleAuthProvider();
-                auth.signInWithPopup(provider)
-                    .then((result) => {
-                        const user = result.user;
-                        // Check if user exists in our database
-                        return usersCollection.doc(user.uid).get()
-                            .then(doc => {
-                                if (doc.exists) {
-                                    // User exists, update last login
-                                    return usersCollection.doc(user.uid).update({
-                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                                    }).then(() => {
-                                        showSuccess('Login successful! Redirecting...');
-                                        setTimeout(() => {
-                                            window.location.href = 'index.html';
-                                        }, 1500);
-                                    });
-                                } else {
-                                    // New user, create profile
-                                    return usersCollection.doc(user.uid).set({
-                                        uid: user.uid,
-                                        email: user.email,
-                                        displayName: user.displayName,
-                                        photoURL: user.photoURL,
-                                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                                        provider: 'google'
-                                    }).then(() => {
-                                        showSuccess('Account created! Redirecting...');
-                                        setTimeout(() => {
-                                            window.location.href = 'index.html';
-                                        }, 1500);
-                                    });
-                                }
-                            });
-                    }).catch((error) => {
-                        // Rest of the Google login handler
-                        this.innerHTML = '<i class="fab fa-google"></i>';
-                        this.style.pointerEvents = 'auto';
-                        showError('Google login failed: ' + error.message);
-                        console.error('Google sign-in error:', error);
-                    });
-            });
-
-            document.getElementById('facebookLogin').addEventListener('click', function (e) {
-                e.preventDefault();
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                this.style.pointerEvents = 'none';
-
-                const provider = new firebase.auth.FacebookAuthProvider();
-                auth.signInWithPopup(provider)
-                    .then((result) => {
-                        const user = result.user;
-                        // Check if user exists in our database
-                        return usersCollection.doc(user.uid).get()
-                            .then(doc => {
-                                if (doc.exists) {
-                                    // User exists, update last login
-                                    return usersCollection.doc(user.uid).update({
-                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                                    }).then(() => {
-                                        showSuccess('Login successful! Redirecting...');
-                                        setTimeout(() => {
-                                            window.location.href = 'index.html';
-                                        }, 1500);
-                                    });
-                                } else {
-                                    // New user, create profile
-                                    return usersCollection.doc(user.uid).set({
-                                        uid: user.uid,
-                                        email: user.email,
-                                        displayName: user.displayName,
-                                        photoURL: user.photoURL,
-                                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                                        provider: 'facebook'
-                                    }).then(() => {
-                                        showSuccess('Account created! Redirecting...');
-                                        setTimeout(() => {
-                                            window.location.href = 'index.html';
-                                        }, 1500);
-                                    });
-                                }
-                            });
-                    }).catch((error) => {
-                        this.innerHTML = '<i class="fab fa-facebook-f"></i>';
-                        this.style.pointerEvents = 'auto';
-                        showError('Facebook login failed: ' + error.message);
-                        console.error('Facebook sign-in error:', error);
-                    });
-            });
-
-            document.getElementById('appleLogin').addEventListener('click', function (e) {
-                e.preventDefault();
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                this.style.pointerEvents = 'none';
-
-                const provider = new firebase.auth.OAuthProvider('apple.com');
-                auth.signInWithPopup(provider)
-                    .then((result) => {
-                        const user = result.user;
-                        // Check if user exists in our database
-                        return usersCollection.doc(user.uid).get()
-                            .then(doc => {
-                                if (doc.exists) {
-                                    // User exists, update last login
-                                    return usersCollection.doc(user.uid).update({
-                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                                    }).then(() => {
-                                        showSuccess('Login successful! Redirecting...');
-                                        setTimeout(() => {
-                                            window.location.href = 'index.html';
-                                        }, 1500);
-                                    });
-                                } else {
-                                    // New user, create profile
-                                    return usersCollection.doc(user.uid).set({
-                                        uid: user.uid,
-                                        email: user.email,
-                                        displayName: user.displayName || 'Apple User',
-                                        photoURL: user.photoURL,
-                                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                                        provider: 'apple'
-                                    }).then(() => {
-                                        showSuccess('Account created! Redirecting...');
-                                        setTimeout(() => {
-                                            window.location.href = 'index.html';
-                                        }, 1500);
-                                    });
-                                }
-                            });
-                    }).catch((error) => {
-                        this.innerHTML = '<i class="fab fa-apple"></i>';
-                        this.style.pointerEvents = 'auto';
-                        showError('Apple login failed: ' + error.message);
-                        console.error('Apple sign-in error:', error);
-                    });
-            });
-
-            // Password Reset (Forgot Password)
-            document.getElementById('forgotPassword').addEventListener('click', function (e) {
-                e.preventDefault();
-                const email = document.getElementById('customerEmail').value;
-
-                if (!email) {
-                    showError('Please enter your email address first');
-                    return;
+            togglePassword.addEventListener('click', function() {
+                const passwordInput = document.getElementById('password');
+                const icon = this.querySelector('i');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
                 }
-
-                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Sending...';
-                this.disabled = true;
-
-                auth.sendPasswordResetEmail(email)
-                    .then(() => {
-                        this.innerHTML = 'Forgot password?';
-                        this.disabled = false;
-                        showSuccess('Password reset email sent! Check your inbox.');
-                    })
-                    .catch((error) => {
-                        this.innerHTML = 'Forgot password?';
-                        this.disabled = false;
-                        showError('Failed to send reset email: ' + error.message);
-                    });
             });
-
-            document.getElementById('adminForgotPassword').addEventListener('click', function (e) {
+            
+            // Handle form submission
+            loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                const email = document.getElementById('adminEmail').value;
-
-                if (!email) {
-                    showError('Please enter your email address first');
-                    return;
-                }
-
-                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Sending...';
-                this.disabled = true;
-
-                auth.sendPasswordResetEmail(email)
-                    .then(() => {
-                        this.innerHTML = 'Forgot password?';
-                        this.disabled = false;
-                        showSuccess('Password reset email sent! Check your inbox.');
-                    })
-                    .catch((error) => {
-                        this.innerHTML = 'Forgot password?';
-                        this.disabled = false;
-                        showError('Failed to send reset email: ' + error.message);
-                    });
-            });
-
-            // Add tab change animation
-            const tabLinks = document.querySelectorAll('.nav-link');
-            tabLinks.forEach(tab => {
-                tab.addEventListener('click', function () {
-                    const targetId = this.getAttribute('data-bs-target').substring(1);
-                    const targetPane = document.getElementById(targetId);
-
-                    if (targetPane) {
-                        targetPane.style.opacity = '0';
-                        targetPane.style.transform = 'translateY(10px)';
-
+                
+                // Show loader
+                loader.style.display = 'block';
+                
+                // Get form data
+                const formData = new FormData(this);
+                
+                // Send login request
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loader
+                    loader.style.display = 'none';
+                    
+                    // Show message
+                    alertMessage.textContent = data.message;
+                    alertMessage.className = `alert alert-${data.status === 'success' ? 'success' : 'danger'}`;
+                    alertMessage.style.display = 'block';
+                    
+                    if (data.status === 'success') {
+                        // Redirect to home page after successful login
                         setTimeout(() => {
-                            targetPane.style.opacity = '1';
-                            targetPane.style.transform = 'translateY(0)';
-                        }, 150);
+                            window.location.href = data.redirect;
+                        }, 1000);
                     }
+                })
+                .catch(error => {
+                    // Hide loader
+                    loader.style.display = 'none';
+                    
+                    // Show error message
+                    alertMessage.textContent = 'An error occurred. Please try again.';
+                    alertMessage.className = 'alert alert-danger';
+                    alertMessage.style.display = 'block';
                 });
             });
-
-            // Check Authentication State
-            auth.onAuthStateChanged(function (user) {
-                if (user) {
-                    // User is already signed in
-                    // Check which type of user it is
-                    Promise.all([
-                        usersCollection.doc(user.uid).get(),
-                        adminsCollection.doc(user.uid).get()
-                    ]).then(([userDoc, adminDoc]) => {
-                        if (userDoc.exists) {
-                            // Redirect customer to home page
-                            window.location.href = 'index.html';
-                        } else if (adminDoc.exists) {
-                            // Redirect admin to dashboard
-                            window.location.href = 'admin-dashboard.html';
-                        }
-                    }).catch(error => {
-                        console.error('Error checking user type:', error);
-                    });
-                }
-            });
-        })
+        });
     </script>
 </body>
 

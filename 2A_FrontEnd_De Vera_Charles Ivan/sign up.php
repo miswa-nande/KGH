@@ -1,57 +1,70 @@
 <?php
 require_once 'conn.php';
 
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Log the received POST data
+    error_log("Received POST data: " . print_r($_POST, true));
+    
     header('Content-Type: application/json');
     
-    // Escape inputs to prevent SQL injection
-    $email = escapeString($_POST['email']);
-    $passwordRaw = $_POST['password'];
-    $passwordConfirm = $_POST['confirmPassword'];
-    $firstName = escapeString($_POST['firstName']);
-    $lastName = escapeString($_POST['lastName']);
-    $phone = escapeString($_POST['phone']);
-    $birthdate = escapeString($_POST['birthdate']);
-    $categories = isset($_POST['categories']) ? $_POST['categories'] : [];
+    try {
+        // Escape inputs to prevent SQL injection
+        $email = escapeString($_POST['email']);
+        $passwordRaw = $_POST['password'];
+        $passwordConfirm = $_POST['confirmPassword'];
+        $firstName = escapeString($_POST['firstName']);
+        $lastName = escapeString($_POST['lastName']);
+        $phone = escapeString($_POST['phone']);
+        $birthdate = escapeString($_POST['birthdate']);
+        $categories = isset($_POST['categories']) ? $_POST['categories'] : [];
 
-    // Initialize response
-    $response = ['status' => '', 'message' => ''];
+        // Initialize response
+        $response = ['status' => '', 'message' => ''];
 
-    // Validate email format
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $response = ['status' => 'error', 'message' => 'Invalid email format!'];
-    } else if ($passwordRaw !== $passwordConfirm) {
-        $response = ['status' => 'error', 'message' => 'Passwords do not match!'];
-    } else {
-        // Hash the password
-        $password = password_hash($passwordRaw, PASSWORD_DEFAULT);
-
-        // Check if email already exists
-        $checkEmail = executeQuery("SELECT email FROM users WHERE email = '$email'");
-        if ($checkEmail->num_rows > 0) {
-            $response = ['status' => 'error', 'message' => 'Email already exists!'];
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $response = ['status' => 'error', 'message' => 'Invalid email format!'];
+        } else if ($passwordRaw !== $passwordConfirm) {
+            $response = ['status' => 'error', 'message' => 'Passwords do not match!'];
         } else {
-            // Insert new user with type 'customer'
-            $sql = "INSERT INTO users (email, password, first_name, last_name, phone, birthdate, type) 
-                    VALUES ('$email', '$password', '$firstName', '$lastName', '$phone', '$birthdate', 'customer')";
-            
-            if (executeNonQuery($sql)) {
-                $user_id = $conn->insert_id;
-                
-                // Save preferences if any
-                if (!empty($categories)) {
-                    foreach ($categories as $category) {
-                        $category = escapeString($category);
-                        $pref_sql = "INSERT INTO user_preferences (user_id, category) VALUES ('$user_id', '$category')";
-                        executeNonQuery($pref_sql);
-                    }
-                }
-                
-                $response = ['status' => 'success', 'message' => 'Registration successful! You can now login.'];
+            // Hash the password
+            $password = password_hash($passwordRaw, PASSWORD_DEFAULT);
+
+            // Check if email already exists
+            $checkEmail = executeQuery("SELECT email FROM users WHERE email = '$email'");
+            if ($checkEmail->num_rows > 0) {
+                $response = ['status' => 'error', 'message' => 'Email already exists!'];
             } else {
-                $response = ['status' => 'error', 'message' => 'Error during registration. Please try again.'];
+                // Insert new user with type 'customer'
+                $sql = "INSERT INTO users (email, password, first_name, last_name, phone, birthdate, type) 
+                        VALUES ('$email', '$password', '$firstName', '$lastName', '$phone', '$birthdate', 'customer')";
+                
+                if (executeNonQuery($sql)) {
+                    $user_id = $conn->insert_id;
+                    
+                    // Save preferences if any
+                    if (!empty($categories)) {
+                        foreach ($categories as $category) {
+                            $category = escapeString($category);
+                            $pref_sql = "INSERT INTO user_preferences (user_id, category) VALUES ('$user_id', '$category')";
+                            executeNonQuery($pref_sql);
+                        }
+                    }
+                    
+                    $response = ['status' => 'success', 'message' => 'Registration successful! You can now login.'];
+                } else {
+                    error_log("Database error: " . $conn->error);
+                    $response = ['status' => 'error', 'message' => 'Error during registration. Please try again.'];
+                }
             }
         }
+    } catch (Exception $e) {
+        error_log("Exception occurred: " . $e->getMessage());
+        $response = ['status' => 'error', 'message' => 'An unexpected error occurred. Please try again.'];
     }
     
     // Return JSON response and exit
@@ -101,7 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <!-- Navigation Bar -->
     <nav class="navbar sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="index.html">
+            <a class="navbar-brand" href="home.php">
                 <i class="fas fa-mobile-alt me-2"></i> KGH HUB
             </a>
         </div>
@@ -312,41 +325,65 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             function validateStep(index) {
+                console.log("Validating step:", index);
                 switch (index) {
                     case 0:
-                        if (!email.value.trim() || !password.value.trim() || !confirmPassword.value.trim()) {
+                        const email = document.getElementById("email").value.trim();
+                        const password = document.getElementById("password").value;
+                        const confirmPassword = document.getElementById("confirmPassword").value;
+                        
+                        console.log("Validating email:", email);
+                        console.log("Validating password:", password);
+                        console.log("Validating confirm password:", confirmPassword);
+
+                        if (!email || !password || !confirmPassword) {
                             showMessage("Please fill all required fields in Account Information.", "error");
                             return false;
                         }
-                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                             showMessage("Please enter a valid email address.", "error");
                             return false;
                         }
                         for (const key in criteria) {
-                            if (!criteria[key].regex.test(password.value)) {
+                            if (!criteria[key].regex.test(password)) {
                                 showMessage("Password does not meet all required criteria.", "error");
                                 return false;
                             }
                         }
-                        if (password.value !== confirmPassword.value) {
+                        if (password !== confirmPassword) {
                             showMessage("Passwords do not match.", "error");
                             return false;
                         }
+                        return true;
                         break;
                     case 1:
-                        if (!firstName.value.trim() || !lastName.value.trim() || !phone.value.trim() || !birthdate.value.trim()) {
+                        const firstName = document.getElementById("firstName").value.trim();
+                        const lastName = document.getElementById("lastName").value.trim();
+                        const phone = document.getElementById("phone").value.trim();
+                        const birthdate = document.getElementById("birthdate").value.trim();
+                        
+                        console.log("Validating firstName:", firstName);
+                        console.log("Validating lastName:", lastName);
+                        console.log("Validating phone:", phone);
+                        console.log("Validating birthdate:", birthdate);
+
+                        if (!firstName || !lastName || !phone || !birthdate) {
                             showMessage("Please fill all required fields in Personal Information.", "error");
                             return false;
                         }
-                        if (!/^\d{7,15}$/.test(phone.value.trim())) {
+                        if (!/^\d{7,15}$/.test(phone)) {
                             showMessage("Please enter a valid phone number (7-15 digits).", "error");
                             return false;
                         }
+                        return true;
+                        break;
+                    case 2:
+                        // No validation needed for preferences as they are optional
+                        return true;
                         break;
                     default:
                         return false;
                 }
-                return true;
             }
 
             function showMessage(message, type) {
@@ -392,22 +429,59 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             signupForm.addEventListener("submit", function (e) {
                 e.preventDefault();
-                if (!validateStep(currentStep)) return;
+                console.log("Form submission started");
+                
+                if (!validateStep(currentStep)) {
+                    console.log("Step validation failed");
+                    return;
+                }
                 
                 const formData = new FormData(this);
                 const loader = document.getElementById("loader");
                 const createAccountBtn = document.querySelector('button[type="submit"]');
                 
+                // Debug log form data
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+                
                 // Show loader and disable submit button
                 if (loader) loader.style.display = "block";
                 if (createAccountBtn) createAccountBtn.disabled = true;
 
+                // Add validation for all required fields
+                const requiredFields = ['email', 'password', 'confirmPassword', 'firstName', 'lastName', 'phone', 'birthdate'];
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!formData.get(field)) {
+                        console.log(`Missing required field: ${field}`);
+                        showMessage(`Please fill in the ${field} field.`, "error");
+                        isValid = false;
+                    }
+                });
+
+                if (!isValid) {
+                    console.log("Form validation failed");
+                    if (loader) loader.style.display = "none";
+                    if (createAccountBtn) createAccountBtn.disabled = false;
+                    return;
+                }
+
+                console.log("Sending form data to server...");
                 fetch(window.location.href, {
                     method: "POST",
                     body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log("Server response received:", response.status);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log("Server data:", data);
                     // Hide loader
                     if (loader) loader.style.display = "none";
 
@@ -428,16 +502,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 })
                 .catch(error => {
+                    console.error('Error:', error);
                     // Hide loader
                     if (loader) loader.style.display = "none";
                     
                     // Show error message
-                    showMessage("An error occurred. Please try again.", "error");
+                    showMessage("An error occurred while creating your account. Please try again.", "error");
                     
                     // Re-enable submit button
                     if (createAccountBtn) createAccountBtn.disabled = false;
                 });
             });
+
+            // Add this at the end of your DOMContentLoaded event listener
+            console.log("Signup form initialized");
 
             showStep(currentStep);
         });

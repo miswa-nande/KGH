@@ -72,7 +72,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="home.html">
+            <a class="navbar-brand" href="home.php">
                 <i class="fas fa-mobile-alt me-2"></i>KGH HUB
             </a>
             <button class="navbar-toggler text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -82,7 +82,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="home.html">Home</a>
+                        <a class="nav-link" href="home.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -90,26 +90,26 @@
                             Products
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="phones.html">Smartphones</a></li>
-                            <li><a class="dropdown-item" href="laptops.html">Laptops</a></li>
+                            <li><a class="dropdown-item" href="phones.php">Smartphones</a></li>
+                            <li><a class="dropdown-item" href="laptops.php">Laptops</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.html">About Us</a>
+                        <a class="nav-link" href="about.php">About Us</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="contact.html">Contact</a>
+                        <a class="nav-link" href="contact.php">Contact</a>
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
-                    <a href="cart.html" class="nav-link me-3 position-relative">
+                    <a href="cart.php" class="nav-link me-3 position-relative">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge rounded-pill badge-cart">0</span>
                     </a>
-                    <a href="user account.html" class="nav-link me-3">
+                    <a href="user_account.php" class="nav-link me-3">
                         <i class="fas fa-user"></i>
                     </a>
-                    <a href="login_page.html" class="btn btn-sm btn-primary">
+                    <a href="login_page.php" class="btn btn-sm btn-primary">
                         Login / Register
                     </a>
                 </div>
@@ -153,7 +153,7 @@
                         <button type="submit" class="btn btn-primary">Send Reset Link</button>
                     </div>
                     <div class="text-center mt-4">
-                        <p>Remembered your password? <a href="login_page.html">Sign in</a></p>
+                        <p>Remembered your password? <a href="login_page.php">Sign in</a></p>
                     </div>
                 </form>
             </div>

@@ -20,7 +20,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="home.html">
+            <a class="navbar-brand" href="home.php">
                 KGH HUB
             </a>
             <button class="navbar-toggler text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -30,19 +30,19 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="home.html">Home</a>
+                        <a class="nav-link" href="home.php">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="phones.html">Phones</a>
+                        <a class="nav-link active" aria-current="page" href="phones.php">Phones</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="laptops.html">Laptops</a>
+                        <a class="nav-link" href="laptops.php">Laptops</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.html">About Us</a>
+                        <a class="nav-link" href="about.php">About Us</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="contact.html">Contact</a>
+                        <a class="nav-link" href="contact.php">Contact</a>
                     </li>
                 </ul>
                 <form class="d-flex me-3">
@@ -54,11 +54,11 @@
                     </div>
                 </form>
                 <div class="d-flex align-items-center">
-                    <a href="cart.html" class="btn btn-light position-relative me-3">
+                    <a href="cart.php" class="btn btn-light position-relative me-3">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge rounded-pill badge-cart" id="cart-count">0</span>
                     </a>
-                    <a href="login_page.html" class="btn btn-light me-2" id="loginBtn">
+                    <a href="user_account.php" class="btn btn-light me-2" id="loginBtn">
                         <i class="fas fa-user"></i> Login
                     </a>
                 </div>
@@ -205,7 +205,7 @@
                                     </div>
                                     <p class="card-text small">6.1" Retina XDR, A18 chip, 256GB</p>
                                     <p class="price mb-2">₱59,999.95</p>
-                                    <a href="product-detail.html?id=1"
+                                    <a href="product-detail.php?id=1"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="1"
                                         data-name="iPhone 16 Pro" data-price="59999.95">Add to Cart</button>
@@ -229,7 +229,7 @@
                                     </div>
                                     <p class="card-text small">6.8" AMOLED, 16GB RAM, 512GB</p>
                                     <p class="price mb-2">₱64,999.95</p>
-                                    <a href="product-detail.html?id=2"
+                                    <a href="product-detail.php?id=2"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="2"
                                         data-name="Galaxy S25 Ultra" data-price="64999.95">Add to Cart</button>
@@ -255,7 +255,7 @@
                                     <p class="card-text small">6.7" OLED, Google Tensor, 256GB</p>
                                     <p class="price mb-2">₱44,999.95 <small
                                             class="text-decoration-line-through text-muted">₱49,999.95</small></p>
-                                    <a href="product-detail.html?id=3"
+                                    <a href="product-detail.php?id=3"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="3"
                                         data-name="Pixel 8 Pro" data-price="44999.95">Add to Cart</button>
@@ -279,7 +279,7 @@
                                     </div>
                                     <p class="card-text small">6.7" Fluid AMOLED, 12GB RAM, 256GB</p>
                                     <p class="price mb-2">₱49,999.95</p>
-                                    <a href="product-detail.html?id=4"
+                                    <a href="product-detail.php?id=4"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="4"
                                         data-name="OnePlus 12" data-price="49999.95">Add to Cart</button>
@@ -303,7 +303,7 @@
                                     </div>
                                     <p class="card-text small">6.1" Retina, A18 chip, 128GB</p>
                                     <p class="price mb-2">₱44,999.95</p>
-                                    <a href="product-detail.html?id=5"
+                                    <a href="product-detail.php?id=5"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="5"
                                         data-name="iPhone 16" data-price="44999.95">Add to Cart</button>
@@ -327,7 +327,7 @@
                                     </div>
                                     <p class="card-text small">6.73" AMOLED, 12GB RAM, 256GB</p>
                                     <p class="price mb-2">₱52,499.95</p>
-                                    <a href="product-detail.html?id=6"
+                                    <a href="product-detail.php?id=6"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="6"
                                         data-name="Xiaomi 14 Ultra" data-price="52499.95">Add to Cart</button>
@@ -372,19 +372,19 @@
                 <div class="col-md-2 mb-4 mb-md-0">
                     <h5>Shop</h5>
                     <ul class="list-unstyled">
-                        <li><a href="phones.html" class="text-white">Phones</a></li>
-                        <li><a href="laptops.html" class="text-white">Laptops</a></li>
-                        <li><a href="accessories.html" class="text-white">Accessories</a></li>
-                        <li><a href="deals.html" class="text-white">Deals</a></li>
+                        <li><a href="phones.php" class="text-white">Phones</a></li>
+                        <li><a href="laptops.php" class="text-white">Laptops</a></li>
+                        <li><a href="accessories.php" class="text-white">Accessories</a></li>
+                        <li><a href="deals.php" class="text-white">Deals</a></li>
                     </ul>
                 </div>
                 <div class="col-md-2 mb-4 mb-md-0">
                     <h5>About</h5>
                     <ul class="list-unstyled">
-                        <li><a href="about.html" class="text-white">Our Story</a></li>
-                        <li><a href="blog.html" class="text-white">Blog</a></li>
-                        <li><a href="careers.html" class="text-white">Careers</a></li>
-                        <li><a href="contact.html" class="text-white">Contact Us</a></li>
+                        <li><a href="about.php" class="text-white">Our Story</a></li>
+                        <li><a href="blog.php" class="text-white">Blog</a></li>
+                        <li><a href="careers.php" class="text-white">Careers</a></li>
+                        <li><a href="contact.php" class="text-white">Contact Us</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">
@@ -403,8 +403,8 @@
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <ul class="list-inline mb-0">
-                        <li class="list-inline-item"><a href="terms.html" class="text-white">Terms of Service</a></li>
-                        <li class="list-inline-item"><a href="privacy.html" class="text-white">Privacy Policy</a></li>
+                        <li class="list-inline-item"><a href="terms.php" class="text-white">Terms of Service</a></li>
+                        <li class="list-inline-item"><a href="privacy.php" class="text-white">Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>
@@ -523,7 +523,7 @@
 
             if (loginBtn && isLoggedIn === 'true') {
                 loginBtn.innerHTML = '<i class="fas fa-user"></i> My Account';
-                loginBtn.href = 'account.html';
+                loginBtn.href = 'account.php';
             }
 
             // Staggered fade-in animation for products

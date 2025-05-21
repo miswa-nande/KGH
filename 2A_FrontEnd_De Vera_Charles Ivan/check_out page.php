@@ -16,7 +16,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="home.html">
+            <a class="navbar-brand" href="home.php">
                 KGH HUB
             </a>
             <button class="navbar-toggler text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -26,27 +26,27 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="home.html">Home</a>
+                        <a class="nav-link" href="home.php">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="phones.html">Phones</a>
+                        <a class="nav-link" href="phones.php">Phones</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="laptops.html">Laptops</a>
+                        <a class="nav-link" href="laptops.php">Laptops</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.html">About Us</a>
+                        <a class="nav-link" href="about.php">About Us</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="contact.html">Contact</a>
+                        <a class="nav-link" href="contact.php">Contact</a>
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
-                    <a href="cart.html" class="btn btn-light position-relative me-3">
+                    <a href="cart.php" class="btn btn-light position-relative me-3">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge rounded-pill badge-cart" id="cart-count">0</span>
                     </a>
-                    <a href="login_page.html" class="btn btn-light me-2" id="loginBtn">
+                    <a href="user_account.php" class="btn btn-light me-2" id="loginBtn">
                         <i class="fas fa-user"></i> Login
                     </a>
                 </div>
@@ -182,7 +182,7 @@
                                 </div>
 
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                                    <a href="cart.html" class="btn btn-outline-secondary me-md-2">Back to Cart</a>
+                                    <a href="cart.php" class="btn btn-outline-secondary me-md-2">Back to Cart</a>
                                     <button type="submit" class="btn btn-primary">Continue to Payment</button>
                                 </div>
                             </form>
@@ -284,11 +284,11 @@
                 <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="index.html" class="text-white text-decoration-none">Home</a></li>
-                        <li class="mb-2"><a href="phones.html" class="text-white text-decoration-none">Phones</a></li>
-                        <li class="mb-2"><a href="laptops.html" class="text-white text-decoration-none">Laptops</a></li>
-                        <li class="mb-2"><a href="about.html" class="text-white text-decoration-none">About Us</a></li>
-                        <li><a href="contact.html" class="text-white text-decoration-none">Contact</a></li>
+                        <li class="mb-2"><a href="index.php" class="text-white text-decoration-none">Home</a></li>
+                        <li class="mb-2"><a href="phones.php" class="text-white text-decoration-none">Phones</a></li>
+                        <li class="mb-2"><a href="laptops.php" class="text-white text-decoration-none">Laptops</a></li>
+                        <li class="mb-2"><a href="about.php" class="text-white text-decoration-none">About Us</a></li>
+                        <li><a href="contact.php" class="text-white text-decoration-none">Contact</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 col-sm-6 mb-4 mb-md-0">

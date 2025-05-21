@@ -91,7 +91,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand animate__animated animate__fadeIn" href="home.html">
+            <a class="navbar-brand animate__animated animate__fadeIn" href="home.php">
                 KGH HUB
             </a>
             <button class="navbar-toggler text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -101,19 +101,19 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="home.html">Home</a>
+                        <a class="nav-link" href="home.php">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="phones.html">Phones</a>
+                        <a class="nav-link" href="phones.php">Phones</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="laptops.html">Laptops</a>
+                        <a class="nav-link active" aria-current="page" href="laptops.php">Laptops</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.html">About Us</a>
+                        <a class="nav-link" href="about.php">About Us</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="contact.html">Contact</a>
+                        <a class="nav-link" href="contact.php">Contact</a>
                     </li>
                 </ul>
                 <form class="d-flex me-3">
@@ -125,11 +125,11 @@
                     </div>
                 </form>
                 <div class="d-flex align-items-center">
-                    <a href="cart.html" class="btn btn-light position-relative me-3 animate__animated animate__pulse">
+                    <a href="cart.php" class="btn btn-light position-relative me-3 animate__animated animate__pulse">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge rounded-pill badge-cart" id="cart-count">0</span>
                     </a>
-                    <a href="login_page.html" class="btn btn-light me-2" id="loginBtn">
+                    <a href="user_account.php" class="btn btn-light me-2" id="loginBtn">
                         <i class="fas fa-user"></i> Login
                     </a>
                 </div>
@@ -311,7 +311,7 @@
                                     </div>
                                     <p class="card-text small">M2 Pro, 16GB RAM, 512GB SSD</p>
                                     <p class="price mb-2">₱124,999.95</p>
-                                    <a href="product-detail.html?id=101"
+                                    <a href="product_detail_page.php"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="101"
                                         data-name="MacBook Pro 16" data-price="124999.95">Add to Cart</button>
@@ -336,7 +336,7 @@
                                     </div>
                                     <p class="card-text small">i7-12700H, 16GB RAM, 1TB SSD</p>
                                     <p class="price mb-2">₱94,999.95</p>
-                                    <a href="product-detail.html?id=102"
+                                    <a href="product_detail_page.php"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="102"
                                         data-name="Dell XPS 15" data-price="94999.95">Add to Cart</button>
@@ -363,7 +363,7 @@
                                     <p class="card-text small">i7-1255U, 16GB RAM, 512GB SSD</p>
                                     <p class="price mb-2">₱69,999.95 <small
                                             class="text-decoration-line-through text-muted">₱79,999.95</small></p>
-                                    <a href="product-detail.html?id=103"
+                                    <a href="product_detail_page.php"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="103"
                                         data-name="HP Spectre x360" data-price="69999.95">Add to Cart</button>
@@ -388,7 +388,7 @@
                                     </div>
                                     <p class="card-text small">AMD Ryzen 9, 32GB RAM, 1TB SSD</p>
                                     <p class="price mb-2">₱104,999.95</p>
-                                    <a href="product-detail.html?id=104"
+                                    <a href="product_detail_page.php"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="104"
                                         data-name="ASUS ROG Zephyrus" data-price="104999.95">Add to Cart</button>
@@ -413,7 +413,7 @@
                                     </div>
                                     <p class="card-text small">i7-1280P, 16GB RAM, 512GB SSD</p>
                                     <p class="price mb-2">₱89,999.95</p>
-                                    <a href="product-detail.html?id=105"
+                                    <a href="product_detail_page.php"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="105"
                                         data-name="Lenovo ThinkPad X1" data-price="89999.95">Add to Cart</button>
@@ -438,7 +438,7 @@
                                     </div>
                                     <p class="card-text small">M2 chip, 8GB RAM, 256GB SSD</p>
                                     <p class="price mb-2">₱59,999.95</p>
-                                    <a href="product-detail.html?id=106"
+                                    <a href="product_detail_page.php"
                                         class="btn btn-outline-primary btn-sm w-100 mb-2">View Details</a>
                                     <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="106"
                                         data-name="MacBook Air M2" data-price="59999.95">Add to Cart</button>
@@ -483,19 +483,19 @@
                 <div class="col-md-2 mb-4 mb-md-0">
                     <h5>Shop</h5>
                     <ul class="list-unstyled">
-                        <li><a href="phones.html" class="text-white">Phones</a></li>
-                        <li><a href="laptops.html" class="text-white">Laptops</a></li>
-                        <li><a href="accessories.html" class="text-white">Accessories</a></li>
-                        <li><a href="deals.html" class="text-white">Deals</a></li>
+                        <li><a href="phones.php" class="text-white">Phones</a></li>
+                        <li><a href="laptops.php" class="text-white">Laptops</a></li>
+                        <li><a href="accessories.php" class="text-white">Accessories</a></li>
+                        <li><a href="deals.php" class="text-white">Deals</a></li>
                     </ul>
                 </div>
                 <div class="col-md-2 mb-4 mb-md-0">
                     <h5>About</h5>
                     <ul class="list-unstyled">
-                        <li><a href="about.html" class="text-white">Our Story</a></li>
-                        <li><a href="blog.html" class="text-white">Blog</a></li>
-                        <li><a href="careers.html" class="text-white">Careers</a></li>
-                        <li><a href="contact.html" class="text-white">Contact Us</a></li>
+                        <li><a href="about.php" class="text-white">Our Story</a></li>
+                        <li><a href="blog.php" class="text-white">Blog</a></li>
+                        <li><a href="careers.php" class="text-white">Careers</a></li>
+                        <li><a href="contact.php" class="text-white">Contact Us</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">
@@ -514,8 +514,8 @@
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <ul class="list-inline mb-0">
-                        <li class="list-inline-item"><a href="terms.html" class="text-white">Terms of Service</a></li>
-                        <li class="list-inline-item"><a href="privacy.html" class="text-white">Privacy Policy</a></li>
+                        <li class="list-inline-item"><a href="terms.php" class="text-white">Terms of Service</a></li>
+                        <li class="list-inline-item"><a href="privacy.php" class="text-white">Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>

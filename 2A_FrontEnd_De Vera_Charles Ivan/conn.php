@@ -26,6 +26,19 @@ function executeNonQuery($sql) {
     return $conn->query($sql);
 }
 
+// Function to execute prepared statements
+function executePreparedStatement($sql, $types, $params) {
+    global $conn;
+    $stmt = $conn->prepare($sql);
+    if ($stmt) {
+        $stmt->bind_param($types, ...$params);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+    return false;
+}
+
 // Function to escape string to prevent SQL injection
 function escapeString($string) {
     global $conn;

@@ -16,7 +16,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="home.html">
+            <a class="navbar-brand" href="home.php">
                 KGH HUB
             </a>
             <button class="navbar-toggler text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -26,19 +26,19 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="home.html">Home</a>
+                        <a class="nav-link" href="home.php">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="phones.html">Phones</a>
+                        <a class="nav-link" href="phones.php">Phones</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="laptops.html">Laptops</a>
+                        <a class="nav-link" href="laptops.php">Laptops</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.html">About Us</a>
+                        <a class="nav-link" href="about.php">About Us</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="contact.html">Contact</a>
+                        <a class="nav-link" href="contact.php">Contact</a>
                     </li>
                 </ul>
                 <form class="d-flex me-3">
@@ -50,11 +50,11 @@
                     </div>
                 </form>
                 <div class="d-flex align-items-center">
-                    <a href="cart.html" class="btn btn-light position-relative me-3">
+                    <a href="cart.php" class="btn btn-light position-relative me-3">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge rounded-pill badge-cart" id="cart-count">0</span>
                     </a>
-                    <a href="login_page.html" class="btn btn-light me-2" id="loginBtn">
+                    <a href="user_account.php" class="btn btn-light me-2" id="loginBtn">
                         <i class="fas fa-user"></i> Login
                     </a>
                 </div>
@@ -67,7 +67,7 @@
         <div class="container">
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="home.html">Home</a></li>
+                    <li class="breadcrumb-item"><a href="home.php">Home</a></li>
                     <li class="breadcrumb-item category-breadcrumb"><a href="#" id="categoryLink">Phones</a></li>
                     <li class="breadcrumb-item active" aria-current="page" id="productName">iPhone 16 Pro</li>
                 </ol>

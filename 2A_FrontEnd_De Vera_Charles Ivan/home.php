@@ -1,3 +1,4 @@
+<?php require_once 'conn.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,7 +18,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="home.html">
+            <a class="navbar-brand" href="home.php">
                 <i class="fas fa-mobile-alt me-2"></i>KGH HUB
             </a>
             <button class="navbar-toggler text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -27,7 +28,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="home.html">Home</a>
+                        <a class="nav-link" href="home.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -35,26 +36,26 @@
                             Products
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="phones.html">Smartphones</a></li>
-                            <li><a class="dropdown-item" href="laptops.html">Laptops</a></li>
+                            <li><a class="dropdown-item" href="phones.php">Smartphones</a></li>
+                            <li><a class="dropdown-item" href="laptops.php">Laptops</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.html">About Us</a>
+                        <a class="nav-link" href="about.php">About Us</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="contact.html">Contact</a>
+                        <a class="nav-link active" href="contact.php">Contact</a>
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
-                    <a href="cart.html" class="nav-link me-3 position-relative">
+                    <a href="cart.php" class="nav-link me-3 position-relative">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge rounded-pill badge-cart" id="cart-count">0</span>
                     </a>
-                    <a href="user account.html" class="nav-link me-3">
+                    <a href="user_account.php" class="nav-link me-3">
                         <i class="fas fa-user"></i>
                     </a>
-                    <a href="login_page.html" class="btn btn-sm btn-primary">
+                    <a href="login_page.php" class="btn btn-sm btn-primary">
                         Login / Register
                     </a>
                 </div>
@@ -68,8 +69,8 @@
             <h1>Premium Gadgets for Modern Life</h1>
             <p class="lead mb-4">Discover the latest phones and laptops at Kushy Gadget Hub</p>
             <div>
-                <a href="phones.html" class="btn btn-primary btn-lg me-2">Shop Phones</a>
-                <a href="laptops.html" class="btn btn-secondary btn-lg">Shop Laptops</a>
+                <a href="phones.php" class="btn btn-primary btn-lg me-2">Shop Phones</a>
+                <a href="laptops.php" class="btn btn-secondary btn-lg">Shop Laptops</a>
             </div>
         </div>
     </section>
@@ -85,7 +86,7 @@
                         <div class="card-body text-center">
                             <h3>Smartphones</h3>
                             <p>Discover the latest mobile technology with premium features and performance.</p>
-                            <a href="phones.html" class="btn btn-primary">Browse Phones</a>
+                            <a href="phones.php" class="btn btn-primary">Browse Phones</a>
                         </div>
                     </div>
                 </div>
@@ -95,7 +96,7 @@
                         <div class="card-body text-center">
                             <h3>Laptops</h3>
                             <p>Find powerful laptops for work, gaming, and everyday use with premium specs.</p>
-                            <a href="laptops.html" class="btn btn-primary">Browse Laptops</a>
+                            <a href="laptops.php" class="btn btn-primary">Browse Laptops</a>
                         </div>
                     </div>
                 </div>
@@ -108,68 +109,36 @@
         <div class="container">
             <h2 class="text-center mb-5">Featured Products</h2>
             <div class="row">
-                <!-- Product 1 -->
-                <div class="col-md-3 col-6">
-                    <div class="card product-card">
-                        <span class="badge bg-danger position-absolute top-0 end-0 m-2">NEW</span>
-                        <img src="https://placehold.co/300x300" class="card-img-top" alt="Product 1">
-                        <div class="card-body">
-                            <h5 class="card-title">Galaxy S25 Ultra</h5>
-                            <p class="card-text small">6.8" AMOLED, 16GB RAM, 512GB storage</p>
-                            <p class="price mb-2">₱72,499.99</p>
-                            <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="1"
-                                data-name="Galaxy S25 Ultra" data-price="72499.99">Add to Cart</button>
+                <?php
+                // Fetch featured products (customize the query as needed)
+                $sql = "SELECT * FROM products LIMIT 4";
+                $result = executeQuery($sql);
+                while ($product = $result->fetch_assoc()): ?>
+                    <div class="col-md-3 col-6">
+                        <div class="card product-card">
+                            <?php if (!empty($product['is_new'])): ?>
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2">NEW</span>
+                            <?php elseif (!empty($product['is_sale'])): ?>
+                                <span class="badge bg-warning position-absolute top-0 end-0 m-2">SALE</span>
+                            <?php endif; ?>
+                            <img src="<?php echo htmlspecialchars($product['image']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                            <div class="card-body">
+                                <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                                <p class="card-text small"><?php echo htmlspecialchars($product['description']); ?></p>
+                                <p class="price mb-2">₱<?php echo number_format($product['price'], 2); ?></p>
+                                <button class="btn btn-primary btn-sm w-100 add-to-cart"
+                                    data-id="<?php echo $product['id']; ?>"
+                                    data-name="<?php echo htmlspecialchars($product['name']); ?>"
+                                    data-price="<?php echo $product['price']; ?>">
+                                    Add to Cart
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Product 2 -->
-                <div class="col-md-3 col-6">
-                    <div class="card product-card">
-                        <img src="https://placehold.co/300x300" class="card-img-top" alt="Product 2">
-                        <div class="card-body">
-                            <h5 class="card-title">iPhone 16 Pro</h5>
-                            <p class="card-text small">6.1" Retina XDR, A18 chip, 256GB storage</p>
-                            <p class="price mb-2">₱66,999.99</p>
-                            <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="2"
-                                data-name="iPhone 16 Pro" data-price="66999.99">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 3 -->
-                <div class="col-md-3 col-6">
-                    <div class="card product-card">
-                        <span class="badge bg-warning position-absolute top-0 end-0 m-2">SALE</span>
-                        <img src="https://placehold.co/300x300" class="card-img-top" alt="Product 3">
-                        <div class="card-body">
-                            <h5 class="card-title">MacBook Pro M4</h5>
-                            <p class="card-text small">14" Liquid Retina, 16GB RAM, 512GB SSD</p>
-                            <p class="price mb-2">₱105,999.99 <small
-                                    class="text-decoration-line-through text-muted">₱117,599.99</small></p>
-                            <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="3"
-                                data-name="MacBook Pro M4" data-price="105999.99">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 4 -->
-                <div class="col-md-3 col-6">
-                    <div class="card product-card">
-                        <img src="https://placehold.co/300x300" class="card-img-top" alt="Product 4">
-                        <div class="card-body">
-                            <h5 class="card-title">Dell XPS 15</h5>
-                            <p class="card-text small">15.6" 4K OLED, i9, 32GB RAM, 1TB SSD</p>
-                            <p class="price mb-2">₱128,799.99</p>
-                            <button class="btn btn-primary btn-sm w-100 add-to-cart" data-id="4" data-name="Dell XPS 15"
-                                data-price="128799.99">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
+                <?php endwhile; ?>
             </div>
-
             <div class="text-center mt-4">
-                <a href="products.html" class="btn btn-primary">View All Products</a>
+                <a href="products.php" class="btn btn-primary">View All Products</a>
             </div>
         </div>
     </section>
@@ -269,19 +238,19 @@
                 <div class="col-md-2 mb-4 mb-md-0">
                     <h5>Shop</h5>
                     <ul class="list-unstyled">
-                        <li><a href="phones.html" class="text-white">Phones</a></li>
-                        <li><a href="laptops.html" class="text-white">Laptops</a></li>
-                        <li><a href="accessories.html" class="text-white">Accessories</a></li>
-                        <li><a href="deals.html" class="text-white">Deals</a></li>
+                        <li><a href="phones.php" class="text-white">Phones</a></li>
+                        <li><a href="laptops.php" class="text-white">Laptops</a></li>
+                        <li><a href="accessories.php" class="text-white">Accessories</a></li>
+                        <li><a href="deals.php" class="text-white">Deals</a></li>
                     </ul>
                 </div>
                 <div class="col-md-2 mb-4 mb-md-0">
                     <h5>About</h5>
                     <ul class="list-unstyled">
-                        <li><a href="about.html" class="text-white">Our Story</a></li>
-                        <li><a href="blog.html" class="text-white">Blog</a></li>
-                        <li><a href="careers.html" class="text-white">Careers</a></li>
-                        <li><a href="contact.html" class="text-white">Contact Us</a></li>
+                        <li><a href="about.php" class="text-white">Our Story</a></li>
+                        <li><a href="blog.php" class="text-white">Blog</a></li>
+                        <li><a href="careers.php" class="text-white">Careers</a></li>
+                        <li><a href="contact.php" class="text-white">Contact Us</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">
@@ -300,8 +269,8 @@
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <ul class="list-inline mb-0">
-                        <li class="list-inline-item"><a href="terms.html" class="text-white">Terms of Service</a></li>
-                        <li class="list-inline-item"><a href="privacy.html" class="text-white">Privacy Policy</a></li>
+                        <li class="list-inline-item"><a href="terms.php" class="text-white">Terms of Service</a></li>
+                        <li class="list-inline-item"><a href="privacy.php" class="text-white">Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>
