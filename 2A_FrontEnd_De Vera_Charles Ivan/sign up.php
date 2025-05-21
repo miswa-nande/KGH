@@ -411,11 +411,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     </div>
 
                                     <div class="d-flex justify-content-between mt-4">
-                                        <button
-                                          type="button"
-                                          class="btn btn-outline-secondary prev-step"
-                                          data-prev="step2"
-                                        >
+                                        <button type="button" class="btn btn-outline-secondary prev-step" data-prev="step2">
                                           Previous
                                         </button>
                                         <button type="submit" class="btn btn-success">
