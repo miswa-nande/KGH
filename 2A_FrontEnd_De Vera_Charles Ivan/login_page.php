@@ -467,7 +467,7 @@
                                         <button type="submit" class="btn btn-primary w-100 py-3">Sign In</button>
                                         <div class="text-center mt-4">
                                             <span>Don't have an account? </span>
-                                            <a href="sign up.html" id="signupLink"
+                                            <a href="sign up.php" id="signupLink"
                                                 class="btn-link text-decoration-none">Sign
                                                 Up</a>
                                         </div>
