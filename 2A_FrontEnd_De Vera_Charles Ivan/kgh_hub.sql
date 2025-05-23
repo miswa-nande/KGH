@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 20, 2025 at 03:19 PM
+-- Generation Time: May 23, 2025 at 09:37 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -44,7 +44,7 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `birthdate`, `role`, `created_at`) VALUES
-(1, 'admin@kgh.com', '$2y$10$8K1p/a0dR1Ux5Y5Y5Y5Y5O5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y', 'Admin', 'User', '1234567890', '1990-01-01', 'Super Admin', '2025-05-20 10:49:29');
+(1, 'admin@kgh.com', '$2b$12$e3GfZbU7jTcRt7VCknHzeOQCK1Vn5Ko93aTzETTLyldpcW/vR1WSO', 'Admin', 'User', '1234567890', '1990-01-01', 'Super Admin', '2025-05-20 02:49:29');
 
 -- --------------------------------------------------------
 
@@ -59,6 +59,15 @@ CREATE TABLE `cart_items` (
   `quantity` int(11) NOT NULL DEFAULT 1 CHECK (`quantity` > 0),
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cart_items`
+--
+
+INSERT INTO `cart_items` (`id`, `user_id`, `product_id`, `quantity`, `created_at`) VALUES
+(1, 1, 1, 5, '2025-05-23 00:22:02'),
+(2, 1, 6, 3, '2025-05-23 00:37:26'),
+(3, 1, 3, 1, '2025-05-23 00:37:29');
 
 -- --------------------------------------------------------
 
@@ -86,7 +95,6 @@ INSERT INTO `products` (`id`, `name`, `description`, `category`, `price`, `stock
 (2, 'Samsung Galaxy S21', 'Powerful Android smartphone with stunning display', 'phone', 799.99, 15, 'images/galaxys21.jpg', '2025-05-20 10:49:29'),
 (3, 'Google Pixel 6', 'Best camera phone with pure Android experience', 'phone', 699.99, 8, 'images/pixel6.jpg', '2025-05-20 10:49:29'),
 (4, 'MacBook Pro M1', 'Powerful laptop for professionals', 'laptop', 1299.99, 5, 'images/macbookpro.jpg', '2025-05-20 10:49:29'),
-(5, 'Dell XPS 13', 'Premium ultrabook with stunning display', 'laptop', 999.99, 7, 'images/dellxps.jpg', '2025-05-20 10:49:29'),
 (6, 'Lenovo ThinkPad X1', 'Business laptop with excellent keyboard', 'laptop', 1199.99, 6, 'images/thinkpad.jpg', '2025-05-20 10:49:29');
 
 -- --------------------------------------------------------
@@ -102,6 +110,13 @@ CREATE TABLE `supplier` (
   `address` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `supplier`
+--
+
+INSERT INTO `supplier` (`id`, `name`, `contact`, `address`, `created_at`) VALUES
+(1, 'Tech Supplies Inc.', '09171234567', '123 Tech Street, Makati City, Metro Manila', '2025-05-23 06:43:50');
 
 -- --------------------------------------------------------
 
@@ -126,7 +141,20 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `birthdate`, `created_at`, `type`) VALUES
-(1, 'charlesivan.ornales.devera@gmail.com', '$2y$10$FuF7z.HPbW1nxm0L.HEJ7OPeHEcm2pyYEvdjLMlka5lLDNkJolM9a', 'Charles', 'De Vera', '09480840967', '2005-08-30', '2025-05-20 11:23:46', 'customer');
+(1, 'charlesivan.ornales.devera@gmail.com', '$2y$10$Bw.gmiZk05xeuM8JLFIBi.hJD.4kZm2aOt3gohU0ANiKIPEwXPEPC', 'Charles Ivan', 'De Vera', '09480840967', '2005-08-30', '2025-05-20 11:23:46', 'customer'),
+(6, 'charlesiadssdavan.ornales.devera@gmail.com', '$2y$10$NLst0NuMnOOyqXnM4jeWS./Fxucr23NzDg9NW/RdJXPUKAv/nKJIy', 'Charlie', 'De Vera', '', '0000-00-00', '2025-05-23 00:19:42', 'customer');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_preferences`
+--
+
+CREATE TABLE `user_preferences` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `category` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -167,6 +195,13 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `user_preferences`
+--
+ALTER TABLE `user_preferences`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -180,7 +215,7 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `cart_items`
 --
 ALTER TABLE `cart_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -192,13 +227,19 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `supplier`
 --
 ALTER TABLE `supplier`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `user_preferences`
+--
+ALTER TABLE `user_preferences`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
@@ -210,6 +251,12 @@ ALTER TABLE `users`
 ALTER TABLE `cart_items`
   ADD CONSTRAINT `cart_items_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `cart_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_preferences`
+--
+ALTER TABLE `user_preferences`
+  ADD CONSTRAINT `user_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
