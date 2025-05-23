@@ -333,7 +333,7 @@ $cart_items = executeQuery("SELECT c.*, p.name, p.price, p.image_url
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
-                                    <li><a class="dropdown-item" href="login.php">Logout</a></li>
+                                    <li><a class="dropdown-item" href="login_page.php">Logout</a></li>
                                 </ul>
                             </div>
                         </div>
