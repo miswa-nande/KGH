@@ -1,3 +1,18 @@
+<?php
+session_start();
+require_once 'conn.php';
+
+// Get phone products
+$phones = executeQuery("SELECT * FROM products WHERE category = 'phone'");
+
+// Get cart count if user is logged in
+$cart_count = 0;
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $cart_result = executeQuery("SELECT SUM(quantity) as total FROM cart_items WHERE user_id = $user_id");
+    $cart_count = $cart_result->fetch_assoc()['total'] ?? 0;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -412,101 +427,11 @@
     </footer>
 
     <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Custom JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Cart Configuration -->
+    <script src="cart_config.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Cart functionality
-            let cart = JSON.parse(localStorage.getItem('kghCart')) || [];
-            updateCartCount();
-
-            // Function to update cart count
-            function updateCartCount() {
-                const cartCountElement = document.getElementById('cart-count');
-                if (cartCountElement) {
-                    const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
-                    cartCountElement.textContent = itemCount;
-                }
-            }
-
-            // Add to cart functionality with animation
-            const addToCartButtons = document.querySelectorAll('.add-to-cart');
-            addToCartButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const productId = this.getAttribute('data-id');
-                    const productName = this.getAttribute('data-name');
-                    const productPrice = parseFloat(this.getAttribute('data-price'));
-
-                    // Add animation to button
-                    this.classList.add('animate__animated', 'animate__pulse');
-                    setTimeout(() => {
-                        this.classList.remove('animate__animated', 'animate__pulse');
-                    }, 1000);
-
-                    // Check if product already in cart
-                    const existingItemIndex = cart.findIndex(item => item.id === productId);
-
-                    if (existingItemIndex > -1) {
-                        // Increase quantity if product already in cart
-                        cart[existingItemIndex].quantity += 1;
-                    } else {
-                        // Add new product to cart
-                        cart.push({
-                            id: productId,
-                            name: productName,
-                            price: productPrice,
-                            quantity: 1
-                        });
-                    }
-
-                    // Save cart to local storage
-                    localStorage.setItem('kghCart', JSON.stringify(cart));
-
-                    // Update cart count with animation
-                    const cartCountElement = document.getElementById('cart-count');
-                    cartCountElement.classList.add('animate__animated', 'animate__bounceIn');
-                    setTimeout(() => {
-                        cartCountElement.classList.remove('animate__animated', 'animate__bounceIn');
-                    }, 1000);
-                    updateCartCount();
-
-                    // Show toast notification instead of alert
-                    showToast(`${productName} added to cart!`);
-                });
-            });
-
-            // Toast notification function
-            function showToast(message) {
-                // Create toast element
-                const toast = document.createElement('div');
-                toast.className = 'position-fixed bottom-0 end-0 p-3 animate__animated animate__fadeInUp';
-                toast.style.zIndex = '11';
-                toast.innerHTML = `
-                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header">
-                            <strong class="me-auto">Cart Updated</strong>
-                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body">
-                            ${message}
-                        </div>
-                    </div>
-                `;
-
-                // Add to body
-                document.body.appendChild(toast);
-
-                // Remove after 3 seconds
-                setTimeout(() => {
-                    toast.classList.remove('animate__fadeInUp');
-                    toast.classList.add('animate__fadeOutDown');
-                    setTimeout(() => {
-                        document.body.removeChild(toast);
-                    }, 1000);
-                }, 3000);
-            }
-
             // Price range slider functionality
             const priceRange = document.getElementById('priceRange');
             const priceValue = document.getElementById('priceValue');

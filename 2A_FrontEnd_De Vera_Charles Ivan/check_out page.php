@@ -1,3 +1,77 @@
+<?php
+session_start();
+require_once 'config.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login_page.php');
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$message = '';
+
+// Get user data
+$user = executeQuery("SELECT * FROM users WHERE id = $user_id")->fetch_assoc();
+
+// Get cart items
+$cart_items = executeQuery("
+    SELECT c.*, p.name as product_name, p.price, p.stock, p.image_url 
+    FROM cart_items c 
+    JOIN products p ON c.product_id = p.id 
+    WHERE c.user_id = $user_id
+")->fetch_all(MYSQLI_ASSOC);
+
+$total = 0;
+foreach ($cart_items as $item) {
+    $total += $item['price'] * $item['quantity'];
+}
+
+// Handle checkout
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
+    $shipping_address = $_POST['shipping_address'];
+    $payment_method = $_POST['payment_method'];
+    $order_status = 'pending';
+    
+    // Start transaction
+    executeNonQuery("START TRANSACTION");
+    
+    try {
+        // Create order
+        $order_sql = "INSERT INTO orders (user_id, total_amount, shipping_address, payment_method, status) 
+                     VALUES ($user_id, $total, '$shipping_address', '$payment_method', '$order_status')";
+        executeNonQuery($order_sql);
+        $order_id = mysqli_insert_id($conn);
+        
+        // Add order items
+        foreach ($cart_items as $item) {
+            $order_item_sql = "INSERT INTO order_items (order_id, product_id, quantity, price) 
+                             VALUES ($order_id, {$item['product_id']}, {$item['quantity']}, {$item['price']})";
+            executeNonQuery($order_item_sql);
+            
+            // Update product stock
+            $new_stock = $item['stock'] - $item['quantity'];
+            $update_stock_sql = "UPDATE products SET stock = $new_stock WHERE id = {$item['product_id']}";
+            executeNonQuery($update_stock_sql);
+        }
+        
+        // Clear cart
+        executeNonQuery("DELETE FROM cart_items WHERE user_id = $user_id");
+        
+        // Commit transaction
+        executeNonQuery("COMMIT");
+        
+        // Redirect to order confirmation
+        header("Location: order_confirmation.php?order_id=$order_id");
+        exit();
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        executeNonQuery("ROLLBACK");
+        $message = '<div class="alert alert-danger fade-in">Error processing order. Please try again.</div>';
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,6 +84,25 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="design.css">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .order-summary {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+        }
+    </style>
 </head>
 
 <body>
@@ -125,8 +218,8 @@
 
                                 <h3 class="mb-3 mt-4">Shipping Information</h3>
                                 <div class="mb-3">
-                                    <label for="address" class="form-label">Street Address*</label>
-                                    <input type="text" class="form-control" id="address" required>
+                                    <label for="shipping_address" class="form-label">Shipping Address</label>
+                                    <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="address2" class="form-label">Apartment, suite, etc. (optional)</label>

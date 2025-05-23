@@ -1,4 +1,18 @@
-<?php require_once 'conn.php'; ?>
+<?php
+session_start();
+require_once 'conn.php';
+
+// Get featured products (using LIMIT instead of featured column)
+$featured_products = executeQuery("SELECT * FROM products ORDER BY created_at DESC LIMIT 6");
+
+// Get cart count if user is logged in
+$cart_count = 0;
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $cart_result = executeQuery("SELECT SUM(quantity) as total FROM cart_items WHERE user_id = $user_id");
+    $cart_count = $cart_result->fetch_assoc()['total'] ?? 0;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -278,66 +292,24 @@
     </footer>
 
     <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Custom JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Cart Configuration -->
+    <script src="cart_config.js"></script>
     <script>
-        // Cart functionality
-        document.addEventListener('DOMContentLoaded', function () {
-            // Load cart from localStorage
-            let cart = JSON.parse(localStorage.getItem('kghCart')) || [];
-
-            // Update cart count on page load
-            updateCartCount();
-
-            // Add to cart buttons
-            const addToCartButtons = document.querySelectorAll('.add-to-cart');
-            addToCartButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const id = this.getAttribute('data-id');
-                    const name = this.getAttribute('data-name');
-                    const price = parseFloat(this.getAttribute('data-price'));
-
-                    // Check if product is already in cart
-                    const existingItemIndex = cart.findIndex(item => item.id === id);
-
-                    if (existingItemIndex !== -1) {
-                        cart[existingItemIndex].quantity += 1;
-                    } else {
-                        cart.push({
-                            id: id,
-                            name: name,
-                            price: price,
-                            quantity: 1
-                        });
-                    }
-
-                    // Save to localStorage
-                    localStorage.setItem('kghCart', JSON.stringify(cart));
-
-                    // Update cart count
-                    updateCartCount();
-
-                    // Format price for display
-                    const formattedPrice = new Intl.NumberFormat('en-PH', {
-                        style: 'currency',
-                        currency: 'PHP',
-                        minimumFractionDigits: 2
-                    }).format(price);
-
-                    // Show success message
-                    alert(`${name} (${formattedPrice}) has been added to your cart!`);
-                });
-            });
-
-            // Update cart count badge
-            function updateCartCount() {
-                const cartCountElement = document.getElementById('cart-count');
-                if (cartCountElement) {
-                    const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-                    cartCountElement.textContent = totalItems;
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hero section animation
+            const heroSection = document.querySelector('.hero-section');
+            if (heroSection) {
+                heroSection.classList.add('animate__animated', 'animate__fadeIn');
             }
+
+            // Category cards animation
+            const categoryCards = document.querySelectorAll('.category-section .card');
+            categoryCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate__animated', 'animate__fadeIn');
+                }, index * 100);
+            });
         });
     </script>
 </body>

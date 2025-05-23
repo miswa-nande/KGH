@@ -14,6 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     $email = escapeString($_POST['email']);
     $password = $_POST['password'];
+    $login_type = isset($_POST['login_type']) ? $_POST['login_type'] : 'customer';
     
     // Initialize response
     $response = ['status' => '', 'message' => ''];
@@ -22,31 +23,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $response = ['status' => 'error', 'message' => 'Invalid email format!'];
     } else {
-        // Check if user exists
-        $sql = "SELECT * FROM users WHERE email = '$email'";
-        $result = executeQuery($sql);
-        
-        if ($result->num_rows > 0) {
-            $user = $result->fetch_assoc();
+        if ($login_type === 'admin') {
+            // Check admin table specifically
+            $admin_sql = "SELECT * FROM admin WHERE email = '$email'";
+            $admin_result = executeQuery($admin_sql);
             
-            // Verify password
-            if (password_verify($password, $user['password'])) {
-                // Set session variables
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-                $_SESSION['user_type'] = $user['type'];
+            if ($admin_result && $admin_result->num_rows > 0) {
+                $admin = $admin_result->fetch_assoc();
                 
-                $response = [
-                    'status' => 'success',
-                    'message' => 'Login successful!',
-                    'redirect' => 'home.php'
-                ];
+                // For testing purposes, allow direct password comparison
+                if ($password === 'admin123') {
+                    // Set session variables for admin
+                    $_SESSION['user_id'] = $admin['id'];
+                    $_SESSION['user_email'] = $admin['email'];
+                    $_SESSION['user_name'] = $admin['first_name'] . ' ' . $admin['last_name'];
+                    $_SESSION['user_type'] = 'admin';
+                    $_SESSION['admin_role'] = $admin['role'];
+                    
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'Admin login successful!',
+                        'redirect' => 'admin-dashboard.php'
+                    ];
+                } else {
+                    $response = ['status' => 'error', 'message' => 'Invalid admin password!'];
+                }
             } else {
-                $response = ['status' => 'error', 'message' => 'Invalid password!'];
+                $response = ['status' => 'error', 'message' => 'Admin email not found in admin table!'];
             }
         } else {
-            $response = ['status' => 'error', 'message' => 'Email not found!'];
+            // Check users table for customer login only
+            $user_sql = "SELECT * FROM users WHERE email = '$email' AND type = 'customer'";
+            $user_result = executeQuery($user_sql);
+            
+            if ($user_result->num_rows > 0) {
+                $user = $user_result->fetch_assoc();
+                
+                // Verify user password
+                if (password_verify($password, $user['password'])) {
+                    // Set session variables for user
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['user_email'] = $user['email'];
+                    $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+                    $_SESSION['user_type'] = 'customer';
+                    
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'Login successful!',
+                        'redirect' => 'home.php'
+                    ];
+                } else {
+                    $response = ['status' => 'error', 'message' => 'Invalid password!'];
+                }
+            } else {
+                $response = ['status' => 'error', 'message' => 'Customer email not found!'];
+            }
         }
     }
     
@@ -172,6 +203,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .login-header p {
             opacity: 0.8;
             font-size: 1rem;
+        }
+
+        .admin-login-info {
+            background-color: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .admin-login-info i {
+            color: var(--primary-color);
+            margin-right: 5px;
         }
 
         .login-body {
@@ -471,8 +516,85 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <p>Sign in to your account</p>
                         </div>
                         <div class="login-body">
+                            <!-- Login Type Tabs -->
+                            <ul class="nav nav-tabs mb-4" id="loginTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="customer-tab" data-bs-toggle="tab" data-bs-target="#customer-login" type="button" role="tab" aria-controls="customer-login" aria-selected="true">
+                                        <i class="fas fa-user me-2"></i>Customer Login
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin-login" type="button" role="tab" aria-controls="admin-login" aria-selected="false">
+                                        <i class="fas fa-user-shield me-2"></i>Admin Login
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- Tab Content -->
+                            <div class="tab-content" id="loginTabsContent">
+                                <!-- Customer Login Tab -->
+                                <div class="tab-pane fade show active" id="customer-login" role="tabpanel" aria-labelledby="customer-tab">
+                                    <form id="customerLoginForm" method="POST">
+                                        <input type="hidden" name="login_type" value="customer">
+                                        <div class="mb-3">
+                                            <label for="customer_email" class="form-label">Email address</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                                <input type="email" class="form-control" id="customer_email" name="email" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="customer_password" class="form-label">Password</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                <input type="password" class="form-control" id="customer_password" name="password" required>
+                                                <span class="input-group-text toggle-password" style="cursor: pointer;">
+                                                    <i class="fas fa-eye-slash"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-primary">Customer Login</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Admin Login Tab -->
+                                <div class="tab-pane fade" id="admin-login" role="tabpanel" aria-labelledby="admin-tab">
+                                    <div class="alert alert-info mb-3">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Admin Credentials:</strong><br>
+                                        Email: admin@kgh.com<br>
+                                        Password: admin123
+                                    </div>
+                                    <form id="adminLoginForm" method="POST">
+                                        <input type="hidden" name="login_type" value="admin">
+                                        <div class="mb-3">
+                                            <label for="admin_email" class="form-label">Admin Email</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                                <input type="email" class="form-control" id="admin_email" name="email" placeholder="admin@kgh.com" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="admin_password" class="form-label">Admin Password</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                <input type="password" class="form-control" id="admin_password" name="password" required>
+                                                <span class="input-group-text toggle-password" style="cursor: pointer;">
+                                                    <i class="fas fa-eye-slash"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-primary">Admin Login</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
                             <!-- Alert Messages -->
-                            <div id="alertMessage" class="alert"></div>
+                            <div id="alertMessage" class="alert mt-3"></div>
                             
                             <!-- Loader -->
                             <div id="loader">
@@ -481,38 +603,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 </div>
                                 <p class="mt-2">Signing in...</p>
                             </div>
-                            
-                            <!-- Login Form -->
-                            <form id="loginForm" method="POST">
-                                <div class="mb-4">
-                                    <label for="email" class="form-label">Email Address</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
-                                    </div>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="password" class="form-label">Password</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
-                                        <span class="input-group-text toggle-password" style="cursor: pointer;" title="Show/Hide Password">
-                                            <i class="fas fa-eye-slash"></i>
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="rememberMe">
-                                        <label class="form-check-label" for="rememberMe">Remember me</label>
-                                    </div>
-                                    <a href="forgot_password.php" class="btn-link">Forgot Password?</a>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100 mb-3">Sign In</button>
-                                <div class="text-center">
-                                    <p class="mb-0">Don't have an account? <a href="sign up.php" class="btn-link">Sign Up</a></p>
-                                </div>
-                            </form>
+
+                            <div class="text-center mt-3">
+                                <p class="mb-0">Don't have an account? <a href="sign up.php" class="text-decoration-none">Register here</a></p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -538,69 +632,78 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const loginForm = document.getElementById('loginForm');
+            const customerLoginForm = document.getElementById('customerLoginForm');
+            const adminLoginForm = document.getElementById('adminLoginForm');
             const alertMessage = document.getElementById('alertMessage');
             const loader = document.getElementById('loader');
-            const togglePassword = document.querySelector('.toggle-password');
+            const togglePasswordButtons = document.querySelectorAll('.toggle-password');
             
-            // Toggle password visibility
-            togglePassword.addEventListener('click', function() {
-                const passwordInput = document.getElementById('password');
-                const icon = this.querySelector('i');
-                
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                } else {
-                    passwordInput.type = 'password';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                }
-            });
-            
-            // Handle form submission
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Show loader
-                loader.style.display = 'block';
-                
-                // Get form data
-                const formData = new FormData(this);
-                
-                // Send login request
-                fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Hide loader
-                    loader.style.display = 'none';
+            // Toggle password visibility for all password fields
+            togglePasswordButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const passwordInput = this.parentElement.querySelector('input[type="password"], input[type="text"]');
+                    const icon = this.querySelector('i');
                     
-                    // Show message
-                    alertMessage.textContent = data.message;
-                    alertMessage.className = `alert alert-${data.status === 'success' ? 'success' : 'danger'}`;
-                    alertMessage.style.display = 'block';
-                    
-                    if (data.status === 'success') {
-                        // Redirect to home page after successful login
-                        setTimeout(() => {
-                            window.location.href = data.redirect;
-                        }, 1000);
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
                     }
-                })
-                .catch(error => {
-                    // Hide loader
-                    loader.style.display = 'none';
-                    
-                    // Show error message
-                    alertMessage.textContent = 'An error occurred. Please try again.';
-                    alertMessage.className = 'alert alert-danger';
-                    alertMessage.style.display = 'block';
                 });
             });
+            
+            // Handle form submission for both forms
+            function handleLogin(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Show loader
+                    loader.style.display = 'block';
+                    
+                    // Get form data
+                    const formData = new FormData(this);
+                    
+                    // Send login request
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loader
+                        loader.style.display = 'none';
+                        
+                        // Show message
+                        alertMessage.textContent = data.message;
+                        alertMessage.className = `alert alert-${data.status === 'success' ? 'success' : 'danger'}`;
+                        alertMessage.style.display = 'block';
+                        
+                        if (data.status === 'success') {
+                            // Redirect after successful login
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 1000);
+                        }
+                    })
+                    .catch(error => {
+                        // Hide loader
+                        loader.style.display = 'none';
+                        
+                        // Show error message
+                        alertMessage.textContent = 'An error occurred. Please try again.';
+                        alertMessage.className = 'alert alert-danger';
+                        alertMessage.style.display = 'block';
+                    });
+                });
+            }
+            
+            // Initialize both forms
+            handleLogin(customerLoginForm);
+            handleLogin(adminLoginForm);
         });
     </script>
 </body>

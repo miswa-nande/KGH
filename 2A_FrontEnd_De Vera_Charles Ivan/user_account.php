@@ -395,7 +395,7 @@ if (isset($_GET['logout'])) {
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
-                    <a href="#" class="nav-link me-3 position-relative">
+                    <a href="cart.php" class="nav-link me-3 position-relative">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge rounded-pill badge-cart">3</span>
                     </a>
@@ -775,122 +775,128 @@ if (isset($_GET['logout'])) {
                                        value="<?php echo htmlspecialchars($user['birthdate']); ?>" required>
                             </div>
 
-                            <hr class="my-4">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-4">
+                                <button type="submit" name="update_profile" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
 
-                            <h5>Change Password</h5>
-                            <form method="POST" action="" id="passwordForm">
-                                <div class="mb-3">
-                                    <label for="current_password" class="form-label">Current Password</label>
-                                    <input type="password" class="form-control" id="current_password" 
-                                           name="current_password" required>
-                                    <div class="invalid-feedback" id="currentPasswordFeedback">
-                                        Current password is incorrect
-                                    </div>
+                        <hr class="my-4">
+
+                        <h5>Change Password</h5>
+                        <form method="POST" action="" id="passwordForm">
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="current_password" 
+                                       name="current_password" required>
+                                <div class="invalid-feedback" id="currentPasswordFeedback">
+                                    Current password is incorrect
                                 </div>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label for="new_password" class="form-label">New Password</label>
-                                    <input type="password" class="form-control" id="new_password" 
-                                           name="new_password" disabled>
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="new_password" 
+                                       name="new_password" disabled>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirm_password" 
+                                       name="confirm_password" disabled>
+                                <div class="invalid-feedback" id="confirmPasswordFeedback">
+                                    Passwords do not match
                                 </div>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
-                                    <input type="password" class="form-control" id="confirm_password" 
-                                           name="confirm_password" disabled>
-                                    <div class="invalid-feedback" id="confirmPasswordFeedback">
-                                        Passwords do not match
-                                    </div>
-                                </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" name="change_password" class="btn btn-success" id="changeBtn" disabled>
+                                    Change Password
+                                </button>
+                            </div>
+                        </form>
 
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <button type="submit" name="change_password" class="btn btn-success" id="changeBtn" disabled>
-                                        Change Password
-                                    </button>
-                                </div>
-                            </form>
-
-                            <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                const currentPassword = document.getElementById('current_password');
-                                const newPassword = document.getElementById('new_password');
-                                const confirmPassword = document.getElementById('confirm_password');
-                                const changeBtn = document.getElementById('changeBtn');
-                                const currentPasswordFeedback = document.getElementById('currentPasswordFeedback');
-                                const confirmPasswordFeedback = document.getElementById('confirmPasswordFeedback');
-                                
-                                // Initially disable new password fields and change button
-                                newPassword.disabled = true;
-                                confirmPassword.disabled = true;
-                                changeBtn.disabled = true;
-                                
-                                // Verify current password when user leaves the field
-                                currentPassword.addEventListener('blur', function() {
-                                    if (this.value.trim() !== '') {
-                                        // Send AJAX request to verify current password
-                                        fetch('verify_password.php', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/x-www-form-urlencoded',
-                                            },
-                                            body: 'current_password=' + encodeURIComponent(this.value)
-                                        })
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            if (data.success) {
-                                                // Enable new password fields and change button
-                                                newPassword.disabled = false;
-                                                confirmPassword.disabled = false;
-                                                changeBtn.disabled = false;
-                                                currentPassword.classList.remove('is-invalid');
-                                                currentPassword.classList.add('is-valid');
-                                                currentPasswordFeedback.style.display = 'none';
-                                                
-                                                // Focus on new password field
-                                                newPassword.focus();
-                                            } else {
-                                                // Show error message
-                                                currentPassword.classList.remove('is-valid');
-                                                currentPassword.classList.add('is-invalid');
-                                                currentPasswordFeedback.style.display = 'block';
-                                                newPassword.disabled = true;
-                                                confirmPassword.disabled = true;
-                                                changeBtn.disabled = true;
-                                            }
-                                        })
-                                        .catch(error => {
-                                            console.error('Error:', error);
-                                            alert('An error occurred. Please try again.');
-                                        });
-                                    }
-                                });
-                                
-                                // Check if passwords match when user types in confirm password
-                                confirmPassword.addEventListener('input', function() {
-                                    if (this.value !== newPassword.value) {
-                                        this.classList.remove('is-valid');
-                                        this.classList.add('is-invalid');
-                                        confirmPasswordFeedback.style.display = 'block';
-                                        changeBtn.disabled = true;
-                                    } else {
-                                        this.classList.remove('is-invalid');
-                                        this.classList.add('is-valid');
-                                        confirmPasswordFeedback.style.display = 'none';
-                                        changeBtn.disabled = false;
-                                    }
-                                });
-                                
-                                // Handle password change
-                                changeBtn.addEventListener('click', function(e) {
-                                    if (newPassword.value !== confirmPassword.value) {
-                                        e.preventDefault();
-                                        confirmPassword.classList.add('is-invalid');
-                                        confirmPasswordFeedback.style.display = 'block';
-                                    }
-                                });
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const currentPassword = document.getElementById('current_password');
+                            const newPassword = document.getElementById('new_password');
+                            const confirmPassword = document.getElementById('confirm_password');
+                            const changeBtn = document.getElementById('changeBtn');
+                            const currentPasswordFeedback = document.getElementById('currentPasswordFeedback');
+                            const confirmPasswordFeedback = document.getElementById('confirmPasswordFeedback');
+                            
+                            // Initially disable new password fields and change button
+                            newPassword.disabled = true;
+                            confirmPassword.disabled = true;
+                            changeBtn.disabled = true;
+                            
+                            // Verify current password when user leaves the field
+                            currentPassword.addEventListener('blur', function() {
+                                if (this.value.trim() !== '') {
+                                    // Send AJAX request to verify current password
+                                    fetch('verify_password.php', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded',
+                                        },
+                                        body: 'current_password=' + encodeURIComponent(this.value)
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            // Enable new password fields and change button
+                                            newPassword.disabled = false;
+                                            confirmPassword.disabled = false;
+                                            changeBtn.disabled = false;
+                                            currentPassword.classList.remove('is-invalid');
+                                            currentPassword.classList.add('is-valid');
+                                            currentPasswordFeedback.style.display = 'none';
+                                            
+                                            // Focus on new password field
+                                            newPassword.focus();
+                                        } else {
+                                            // Show error message
+                                            currentPassword.classList.remove('is-valid');
+                                            currentPassword.classList.add('is-invalid');
+                                            currentPasswordFeedback.style.display = 'block';
+                                            newPassword.disabled = true;
+                                            confirmPassword.disabled = true;
+                                            changeBtn.disabled = true;
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert('An error occurred. Please try again.');
+                                    });
+                                }
                             });
-                            </script>
-                        </div>
+                            
+                            // Check if passwords match when user types in confirm password
+                            confirmPassword.addEventListener('input', function() {
+                                if (this.value !== newPassword.value) {
+                                    this.classList.remove('is-valid');
+                                    this.classList.add('is-invalid');
+                                    confirmPasswordFeedback.style.display = 'block';
+                                    changeBtn.disabled = true;
+                                } else {
+                                    this.classList.remove('is-invalid');
+                                    this.classList.add('is-valid');
+                                    confirmPasswordFeedback.style.display = 'none';
+                                    changeBtn.disabled = false;
+                                }
+                            });
+                            
+                            // Handle password change
+                            changeBtn.addEventListener('click', function(e) {
+                                if (newPassword.value !== confirmPassword.value) {
+                                    e.preventDefault();
+                                    confirmPassword.classList.add('is-invalid');
+                                    confirmPasswordFeedback.style.display = 'block';
+                                }
+                            });
+                        });
+                        </script>
                     </div>
 
                     <!-- Address Tab -->

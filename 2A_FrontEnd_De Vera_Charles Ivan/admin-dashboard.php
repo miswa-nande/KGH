@@ -8,13 +8,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user'])) {
     $email = escapeString($_POST['email']);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $type = escapeString($_POST['type']);
-    $sql = "INSERT INTO users (first_name, last_name, email, password, type) VALUES ('$first_name', '$last_name', '$email', '$password', '$type')";
-    if (executeNonQuery($sql)) {
-        $add_user_message = '<div class="alert alert-success">User added successfully!</div>';
+    
+    // Validate user type
+    if ($type !== 'customer' && $type !== 'admin') {
+        $add_user_message = '<div class="alert alert-danger">Invalid user type selected.</div>';
     } else {
-        $add_user_message = '<div class="alert alert-danger">Failed to add user.</div>';
+        // Check if email already exists
+        $check_email = executeQuery("SELECT id FROM users WHERE email = '$email'");
+        if ($check_email->num_rows > 0) {
+            $add_user_message = '<div class="alert alert-danger">Email address already exists. Please use a different email.</div>';
+        } else {
+            $sql = "INSERT INTO users (first_name, last_name, email, password, type) VALUES ('$first_name', '$last_name', '$email', '$password', '$type')";
+            if (executeNonQuery($sql)) {
+                $add_user_message = '<div class="alert alert-success">User added successfully!</div>';
+            } else {
+                $add_user_message = '<div class="alert alert-danger">Failed to add user.</div>';
+            }
+        }
     }
 }
+
+// Handle Add Product
+$add_product_message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
+    $name = escapeString($_POST['name']);
+    $description = escapeString($_POST['description']);
+    $category = escapeString($_POST['category']);
+    $price = floatval($_POST['price']);
+    $stock = intval($_POST['stock']);
+    $image_url = escapeString($_POST['image_url']);
+    
+    $sql = "INSERT INTO products (name, description, category, price, stock, image_url) 
+            VALUES ('$name', '$description', '$category', $price, $stock, '$image_url')";
+    if (executeNonQuery($sql)) {
+        $add_product_message = '<div class="alert alert-success">Product added successfully!</div>';
+    } else {
+        $add_product_message = '<div class="alert alert-danger">Failed to add product.</div>';
+    }
+}
+
+// Handle Add Supplier
+$add_supplier_message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_supplier'])) {
+    $name = escapeString($_POST['supplier_name']);
+    $contact = escapeString($_POST['contact']);
+    $address = escapeString($_POST['address']);
+    
+    $sql = "INSERT INTO supplier (name, contact, address) VALUES ('$name', '$contact', '$address')";
+    if (executeNonQuery($sql)) {
+        $add_supplier_message = '<div class="alert alert-success">Supplier added successfully!</div>';
+    } else {
+        $add_supplier_message = '<div class="alert alert-danger">Failed to add supplier.</div>';
+    }
+}
+
 // Handle Delete User
 if (isset($_GET['delete_user'])) {
     $user_id = intval($_GET['delete_user']);
@@ -23,8 +70,77 @@ if (isset($_GET['delete_user'])) {
     header('Location: admin-dashboard.php');
     exit();
 }
+
+// Handle Delete Product
+if (isset($_GET['delete_product'])) {
+    $product_id = intval($_GET['delete_product']);
+    $sql = "DELETE FROM products WHERE id = $product_id";
+    executeNonQuery($sql);
+    header('Location: admin-dashboard.php');
+    exit();
+}
+
+// Handle Delete Supplier
+if (isset($_GET['delete_supplier'])) {
+    $supplier_id = intval($_GET['delete_supplier']);
+    $sql = "DELETE FROM supplier WHERE id = $supplier_id";
+    executeNonQuery($sql);
+    header('Location: admin-dashboard.php');
+    exit();
+}
+
+// Handle Cart Operations
+$cart_message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+    $product_id = intval($_POST['product_id']);
+    $quantity = intval($_POST['quantity']);
+    $user_id = 1; // Admin user ID
+    
+    // Check if product exists and has enough stock
+    $product = executeQuery("SELECT * FROM products WHERE id = $product_id")->fetch_assoc();
+    if ($product && $product['stock'] >= $quantity) {
+        // Check if product already exists in cart
+        $check_sql = "SELECT * FROM cart_items WHERE user_id = $user_id AND product_id = $product_id";
+        $check_result = executeQuery($check_sql);
+        
+        if ($check_result->num_rows > 0) {
+            // Update quantity if product exists
+            $cart_item = $check_result->fetch_assoc();
+            $new_quantity = $cart_item['quantity'] + $quantity;
+            $update_sql = "UPDATE cart_items SET quantity = $new_quantity WHERE id = " . $cart_item['id'];
+            if (executeNonQuery($update_sql)) {
+                $cart_message = '<div class="alert alert-success">Cart updated successfully!</div>';
+            } else {
+                $cart_message = '<div class="alert alert-danger">Failed to update cart.</div>';
+            }
+        } else {
+            // Add new item if product doesn't exist
+            $sql = "INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($user_id, $product_id, $quantity)";
+            if (executeNonQuery($sql)) {
+                $cart_message = '<div class="alert alert-success">Item added to cart successfully!</div>';
+            } else {
+                $cart_message = '<div class="alert alert-danger">Failed to add item to cart.</div>';
+            }
+        }
+    } else {
+        $cart_message = '<div class="alert alert-danger">Failed to add product to cart. Insufficient stock.</div>';
+    }
+}
+
 // Fetch all users
 $users = executeQuery("SELECT * FROM users");
+
+// Fetch all products
+$products = executeQuery("SELECT * FROM products");
+
+// Fetch all suppliers
+$suppliers = executeQuery("SELECT * FROM supplier");
+
+// Fetch cart items
+$cart_items = executeQuery("SELECT c.*, p.name, p.price, p.image_url 
+                          FROM cart_items c 
+                          JOIN products p ON c.product_id = p.id 
+                          WHERE c.user_id = 1"); // Admin user ID
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -130,6 +246,12 @@ $users = executeQuery("SELECT * FROM users");
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('cart')">
+                                <i class="fas fa-shopping-basket me-2"></i>
+                                Cart Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="admin-customers.php">
                                 <i class="fas fa-users me-2"></i>
                                 Customers
@@ -159,7 +281,7 @@ $users = executeQuery("SELECT * FROM users");
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="login.php">
+                            <a class="nav-link" href="login_page.php">
                                 <i class="fas fa-sign-out-alt me-2"></i>
                                 Logout
                             </a>
@@ -731,8 +853,70 @@ $users = executeQuery("SELECT * FROM users");
                     </div>
                 </div>
                 <div id="products-section" class="admin-section d-none">
-                    <h2>Products Management</h2>
-                    <p>Product management features go here.</p>
+                    <h2 class="mb-4">Product Management</h2>
+                    <?php if (!empty($add_product_message)) echo $add_product_message; ?>
+                    <form method="POST" class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <input type="text" name="name" class="form-control" placeholder="Product Name" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="description" class="form-control" placeholder="Description" required>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="category" class="form-select" required>
+                                <option value="phone">Phone</option>
+                                <option value="laptop">Laptop</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" name="price" class="form-control" placeholder="Price" step="0.01" required>
+                        </div>
+                        <div class="col-md-1">
+                            <input type="number" name="stock" class="form-control" placeholder="Stock" required>
+                        </div>
+                        <div class="col-md-1">
+                            <input type="text" name="image_url" class="form-control" placeholder="Image URL" required>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" name="add_product" class="btn btn-success">Add Product</button>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Image</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($product = $products->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?php echo $product['id']; ?></td>
+                                        <td><?php echo htmlspecialchars($product['name']); ?></td>
+                                        <td><?php echo htmlspecialchars($product['description']); ?></td>
+                                        <td><?php echo htmlspecialchars($product['category']); ?></td>
+                                        <td>$<?php echo number_format($product['price'], 2); ?></td>
+                                        <td><?php echo $product['stock']; ?></td>
+                                        <td>
+                                            <?php if ($product['image_url']): ?>
+                                                <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="Product Image" style="max-width: 50px;">
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <a href="admin-dashboard.php?delete_product=<?php echo $product['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this product?');">Delete</a>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div id="orders-section" class="admin-section d-none">
                     <h2>Orders Management</h2>
@@ -756,7 +940,7 @@ $users = executeQuery("SELECT * FROM users");
                         </div>
                         <div class="col-md-1">
                             <select name="type" class="form-select" required>
-                                <option value="user">User</option>
+                                <option value="customer">Customer</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
@@ -783,9 +967,15 @@ $users = executeQuery("SELECT * FROM users");
                                         <td><?php echo htmlspecialchars($user['first_name']); ?></td>
                                         <td><?php echo htmlspecialchars($user['last_name']); ?></td>
                                         <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                        <td><?php echo htmlspecialchars($user['type']); ?></td>
                                         <td>
-                                            <a href="admin-dashboard.php?delete_user=<?php echo $user['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                                            <span class="badge <?php echo $user['type'] === 'admin' ? 'bg-danger' : 'bg-primary'; ?>">
+                                                <?php echo ucfirst(htmlspecialchars($user['type'])); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="admin-dashboard.php?delete_user=<?php echo $user['id']; ?>" 
+                                               class="btn btn-danger btn-sm" 
+                                               onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
                                         </td>
                                     </tr>
                                 <?php endwhile; ?>
@@ -794,12 +984,166 @@ $users = executeQuery("SELECT * FROM users");
                     </div>
                 </div>
                 <div id="reports-section" class="admin-section d-none">
-                    <h2>Reports</h2>
-                    <p>Reports and analytics go here.</p>
+                    <h2 class="mb-4">Supplier Management</h2>
+                    <?php if (!empty($add_supplier_message)) echo $add_supplier_message; ?>
+                    <form method="POST" class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <input type="text" name="supplier_name" class="form-control" placeholder="Supplier Name" required>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="contact" class="form-control" placeholder="Contact Information" required>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="address" class="form-control" placeholder="Address" required>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" name="add_supplier" class="btn btn-success">Add Supplier</button>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Contact</th>
+                                    <th>Address</th>
+                                    <th>Created At</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($supplier = $suppliers->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?php echo $supplier['id']; ?></td>
+                                        <td><?php echo htmlspecialchars($supplier['name']); ?></td>
+                                        <td><?php echo htmlspecialchars($supplier['contact']); ?></td>
+                                        <td><?php echo htmlspecialchars($supplier['address']); ?></td>
+                                        <td><?php echo date('M d, Y', strtotime($supplier['created_at'])); ?></td>
+                                        <td>
+                                            <a href="admin-dashboard.php?delete_supplier=<?php echo $supplier['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this supplier?');">Delete</a>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div id="settings-section" class="admin-section d-none">
                     <h2>Settings</h2>
                     <p>Admin settings go here.</p>
+                </div>
+                <div id="cart-section" class="admin-section d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Cart Management</h2>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addToCartModal">
+                            <i class="fas fa-plus"></i> Add to Cart
+                        </button>
+                    </div>
+
+                    <?php if (!empty($cart_message)) echo $cart_message; ?>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Image</th>
+                                            <th>Price</th>
+                                            <th>Quantity</th>
+                                            <th>Total</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php while ($item = $cart_items->fetch_assoc()): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($item['name']); ?></td>
+                                                <td>
+                                                    <?php if ($item['image_url']): ?>
+                                                        <img src="<?php echo htmlspecialchars($item['image_url']); ?>" 
+                                                             alt="Product" class="img-thumbnail" style="max-width: 50px;">
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>$<?php echo number_format($item['price'], 2); ?></td>
+                                                <td>
+                                                    <div class="input-group" style="width: 120px;">
+                                                        <button class="btn btn-outline-secondary btn-sm" type="button" 
+                                                                onclick="updateQuantity(<?php echo $item['id']; ?>, 'decrease')">-</button>
+                                                        <input type="number" class="form-control form-control-sm text-center" 
+                                                               value="<?php echo $item['quantity']; ?>" min="1" 
+                                                               onchange="updateQuantity(<?php echo $item['id']; ?>, 'set', this.value)">
+                                                        <button class="btn btn-outline-secondary btn-sm" type="button" 
+                                                                onclick="updateQuantity(<?php echo $item['id']; ?>, 'increase')">+</button>
+                                                    </div>
+                                                </td>
+                                                <td>$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                                                <td>
+                                                    <button class="btn btn-danger btn-sm" 
+                                                            onclick="removeFromCart(<?php echo $item['id']; ?>)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        <?php endwhile; ?>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                                            <td colspan="2"><strong>$<?php 
+                                                $total = 0;
+                                                $cart_items->data_seek(0);
+                                                while ($item = $cart_items->fetch_assoc()) {
+                                                    $total += $item['price'] * $item['quantity'];
+                                                }
+                                                echo number_format($total, 2);
+                                            ?></strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Add to Cart Modal -->
+                <div class="modal fade" id="addToCartModal" tabindex="-1" aria-labelledby="addToCartModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addToCartModalLabel">Add Product to Cart</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="POST">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="product_id" class="form-label">Product</label>
+                                        <select class="form-select" id="product_id" name="product_id" required>
+                                            <?php 
+                                            $products->data_seek(0);
+                                            while ($product = $products->fetch_assoc()): 
+                                            ?>
+                                                <option value="<?php echo $product['id']; ?>">
+                                                    <?php echo htmlspecialchars($product['name']); ?> 
+                                                    (Stock: <?php echo $product['stock']; ?>)
+                                                </option>
+                                            <?php endwhile; ?>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="quantity" class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" id="quantity" name="quantity" 
+                                               min="1" value="1" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" name="add_to_cart" class="btn btn-primary">Add to Cart</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
                 <!-- Footer -->
                 <footer class="bg-white rounded shadow p-4 mb-4">
@@ -897,6 +1241,68 @@ $users = executeQuery("SELECT * FROM users");
             document.getElementById(`${sec}-section`).classList.add('d-none');
         });
         document.getElementById('dashboard-section').classList.remove('d-none');
+
+        // Cart Management Functions
+        function updateQuantity(cartId, action, value = null) {
+            let quantity = value;
+            if (!value) {
+                const input = event.target.parentElement.querySelector('input');
+                quantity = parseInt(input.value);
+                if (action === 'increase') quantity++;
+                if (action === 'decrease') quantity = Math.max(1, quantity - 1);
+            }
+            
+            // Send AJAX request to update quantity
+            fetch('update_cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `cart_id=${cartId}&quantity=${quantity}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Failed to update quantity: ' + data.message);
+                }
+            });
+        }
+
+        function removeFromCart(cartId) {
+            if (confirm('Are you sure you want to remove this item from the cart?')) {
+                fetch('remove_from_cart.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `cart_id=${cartId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Failed to remove item: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.classList.add('d-none');
+            });
+            // Show the selected section
+            document.getElementById(`${sectionName}-section`).classList.remove('d-none');
+            // Update active state in sidebar
+            document.querySelectorAll('#sidebar .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
     </script>
 </body>
 

@@ -1,3 +1,114 @@
+<?php
+session_start();
+require_once 'conn.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login_page.php");
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
+$message = '';
+
+// Handle Add to Cart
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+    $product_id = intval($_POST['product_id']);
+    $quantity = intval($_POST['quantity']);
+    
+    // Check if product exists and has enough stock
+    $product = executeQuery("SELECT stock FROM products WHERE id = $product_id")->fetch_assoc();
+    if (!$product) {
+        $message = '<div class="alert alert-danger fade-in">Product not found.</div>';
+    } else if ($quantity > $product['stock']) {
+        $message = '<div class="alert alert-danger fade-in">Requested quantity exceeds available stock.</div>';
+    } else {
+        // Check if product already exists in cart
+        $check_sql = "SELECT * FROM cart_items WHERE user_id = $user_id AND product_id = $product_id";
+        $check_result = executeQuery($check_sql);
+        
+        if ($check_result->num_rows > 0) {
+            // Update quantity if product exists
+            $cart_item = $check_result->fetch_assoc();
+            $new_quantity = $cart_item['quantity'] + $quantity;
+            
+            if ($new_quantity > $product['stock']) {
+                $message = '<div class="alert alert-danger fade-in">Total quantity exceeds available stock.</div>';
+            } else {
+                $update_sql = "UPDATE cart_items SET quantity = $new_quantity WHERE id = " . $cart_item['id'];
+                if (executeNonQuery($update_sql)) {
+                    $message = '<div class="alert alert-success fade-in">Cart updated successfully!</div>';
+                } else {
+                    $message = '<div class="alert alert-danger fade-in">Failed to update cart.</div>';
+                }
+            }
+        } else {
+            // Add new item if product doesn't exist
+            $sql = "INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($user_id, $product_id, $quantity)";
+            if (executeNonQuery($sql)) {
+                $message = '<div class="alert alert-success fade-in">Item added to cart successfully!</div>';
+            } else {
+                $message = '<div class="alert alert-danger fade-in">Failed to add item to cart.</div>';
+            }
+        }
+    }
+}
+
+// Handle Update Cart Item
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cart_item'])) {
+    $cart_id = intval($_POST['cart_id']);
+    $quantity = intval($_POST['quantity']);
+    
+    // Check if product has enough stock
+    $cart_item = executeQuery("SELECT c.*, p.stock FROM cart_items c JOIN products p ON c.product_id = p.id WHERE c.id = $cart_id")->fetch_assoc();
+    if ($cart_item && $quantity <= $cart_item['stock']) {
+        $update_sql = "UPDATE cart_items SET quantity = $quantity WHERE id = $cart_id AND user_id = $user_id";
+        if (executeNonQuery($update_sql)) {
+            $message = '<div class="alert alert-success fade-in">Cart updated successfully!</div>';
+        } else {
+            $message = '<div class="alert alert-danger fade-in">Failed to update cart.</div>';
+        }
+    } else {
+        $message = '<div class="alert alert-danger fade-in">Requested quantity exceeds available stock.</div>';
+    }
+}
+
+// Handle Delete Cart Item
+if (isset($_GET['delete_cart_item'])) {
+    $cart_id = intval($_GET['delete_cart_item']);
+    $sql = "DELETE FROM cart_items WHERE id = $cart_id AND user_id = $user_id";
+    if (executeNonQuery($sql)) {
+        $message = '<div class="alert alert-success fade-in">Item removed from cart successfully!</div>';
+    } else {
+        $message = '<div class="alert alert-danger fade-in">Failed to remove item from cart.</div>';
+    }
+}
+
+// Fetch user's cart items with product details
+$cart_items = executeQuery("
+    SELECT ci.*, p.name as product_name, p.price, p.image_url, p.stock
+    FROM cart_items ci 
+    JOIN products p ON ci.product_id = p.id 
+    WHERE ci.user_id = $user_id 
+    ORDER BY ci.created_at DESC
+");
+
+// Calculate total
+$total = 0;
+$cart_items_array = [];
+while ($item = $cart_items->fetch_assoc()) {
+    $total += $item['price'] * $item['quantity'];
+    $cart_items_array[] = $item;
+}
+
+// Fetch available products for adding to cart
+$products = executeQuery("
+    SELECT id, name, price, stock, image_url 
+    FROM products 
+    WHERE stock > 0 
+    ORDER BY name ASC
+");
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -152,10 +263,18 @@
         /* Smooth quantity changes */
         .quantity-input {
             transition: all 0.2s ease;
+            width: 80px;
         }
 
         .quantity-input:focus {
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .product-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -199,11 +318,10 @@
                 </form>
                 <div class="d-flex align-items-center">
                     <a href="cart.php" class="btn btn-light position-relative me-3 active">
-                    <a href="cart.html" class="btn btn-light position-relative me-3 active">
                         <i class="fas fa-shopping-cart"></i>
-                        <span class="badge rounded-pill badge-cart" id="cart-count">0</span>
+                        <span class="badge rounded-pill badge-cart" id="cart-count"><?php echo count($cart_items_array); ?></span>
                     </a>
-                    <a href="login_page.html" class="btn btn-light me-2" id="loginBtn">
+                    <a href="login_page.php" class="btn btn-light me-2" id="loginBtn">
                         <i class="fas fa-user"></i> Login
                     </a>
                 </div>
@@ -215,222 +333,136 @@
     <section class="py-5">
         <div class="container">
             <h1 class="mb-4">Shopping Cart</h1>
+            
+            <?php if (!empty($message)) echo $message; ?>
 
-            <div class="row" id="cartContainer">
-                <!-- Cart Items Container -->
+            <div class="row">
+                <!-- Cart Items -->
                 <div class="col-lg-8">
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-body">
-                            <div id="cartItems">
-                                <!-- Cart items will be dynamically added here -->
-                                <!-- Example Cart Item -->
-                                <div class="cart-item mb-3" id="cart-item-1">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-2 col-4 mb-md-0 mb-3">
-                                            <img src="https://placehold.co/150x150" class="img-fluid rounded"
-                                                alt="iPhone 16 Pro">
-                                        </div>
-                                        <div class="col-md-4 col-8 mb-md-0 mb-3">
-                                            <h5 class="mb-0">iPhone 16 Pro</h5>
-                                            <small class="text-muted">256GB, Midnight Black</small>
-                                        </div>
-                                        <div class="col-md-2 col-4 mb-md-0 mb-3">
-                                            <div class="quantity-control">
-                                                <button class="btn btn-sm btn-outline-secondary quantity-btn"
-                                                    data-action="decrease" data-id="1">-</button>
-                                                <input type="number" class="form-control form-control-sm quantity-input"
-                                                    value="1" min="1" max="10" data-id="1">
-                                                <button class="btn btn-sm btn-outline-secondary quantity-btn"
-                                                    data-action="increase" data-id="1">+</button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2 col-4 mb-md-0 mb-3">
-                                            <span class="price" id="price-1">₱1,199.99</span>
-                                        </div>
-                                        <div class="col-md-2 col-4 mb-md-0 mb-3 text-end">
-                                            <button class="btn btn-sm btn-outline-danger remove-item" data-id="1">
-                                                <i class="fas fa-trash-alt"></i> Remove
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <!-- Example Cart Item -->
-                                <div class="cart-item mb-3" id="cart-item-2">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-2 col-4 mb-md-0 mb-3">
-                                            <img src="https://placehold.co/150x150" class="img-fluid rounded"
-                                                alt="MacBook Air M2">
-                                        </div>
-                                        <div class="col-md-4 col-8 mb-md-0 mb-3">
-                                            <h5 class="mb-0">MacBook Air M2</h5>
-                                            <small class="text-muted">8GB RAM, 256GB SSD, Space Gray</small>
-                                        </div>
-                                        <div class="col-md-2 col-4 mb-md-0 mb-3">
-                                            <div class="quantity-control">
-                                                <button class="btn btn-sm btn-outline-secondary quantity-btn"
-                                                    data-action="decrease" data-id="2">-</button>
-                                                <input type="number" class="form-control form-control-sm quantity-input"
-                                                    value="1" min="1" max="10" data-id="2">
-                                                <button class="btn btn-sm btn-outline-secondary quantity-btn"
-                                                    data-action="increase" data-id="2">+</button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2 col-4 mb-md-0 mb-3">
-                                            <span class="price" id="price-2">₱23, 000.99</span>
-                                        </div>
-                                        <div class="col-md-2 col-4 mb-md-0 mb-3 text-end">
-                                            <button class="btn btn-sm btn-outline-danger remove-item" data-id="2">
-                                                <i class="fas fa-trash-alt"></i> Remove
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Empty Cart Message (hidden when cart has items) -->
-                            <div id="emptyCartMessage" class="text-center py-5" style="display: none;">
-                                <i class="fas fa-shopping-cart fa-3x mb-3 text-muted"></i>
-                                <h4>Your cart is empty</h4>
-                                <p class="text-muted">Browse our collection and add items to your cart.</p>
-                                <div class="mt-4">
-                                    <a href="phones.html" class="btn btn-primary me-2">Shop Phones</a>
-                                    <a href="laptops.html" class="btn btn-secondary">Shop Laptops</a>
-                                </div>
-                            </div>
-
-                            <!-- Cart Controls -->
-                            <div class="d-flex justify-content-between align-items-center mt-4" id="cartControls">
-                                <a href="index.html" class="btn btn-outline-primary">
-                                    <i class="fas fa-arrow-left me-2"></i> Continue Shopping
-                                </a>
-                                <button id="clearCartBtn" class="btn btn-outline-danger">
-                                    <i class="fas fa-trash-alt me-2"></i> Clear Cart
-                                </button>
-                            </div>
+                    <?php if (empty($cart_items_array)): ?>
+                        <div class="alert alert-info fade-in">
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            Your cart is empty. Add some products to get started!
                         </div>
-                    </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Total</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($cart_items_array as $item): ?>
+                                        <tr class="cart-item">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <?php if ($item['image_url']): ?>
+                                                        <img src="<?php echo htmlspecialchars($item['image_url']); ?>" 
+                                                             alt="<?php echo htmlspecialchars($item['product_name']); ?>"
+                                                             class="img-thumbnail me-3" style="width: 60px;">
+                                                    <?php endif; ?>
+                                                    <div>
+                                                        <h6 class="mb-0"><?php echo htmlspecialchars($item['product_name']); ?></h6>
+                                                        <small class="text-muted">Stock: <?php echo $item['stock']; ?></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>$<?php echo number_format($item['price'], 2); ?></td>
+                                            <td>
+                                                <form method="POST" class="d-flex align-items-center">
+                                                    <input type="hidden" name="cart_id" value="<?php echo $item['id']; ?>">
+                                                    <input type="number" name="quantity" class="form-control form-control-sm quantity-input" 
+                                                           value="<?php echo $item['quantity']; ?>" min="1" max="<?php echo $item['stock']; ?>"
+                                                           onchange="this.form.submit()">
+                                                    <input type="hidden" name="update_cart_item" value="1">
+                                                </form>
+                                            </td>
+                                            <td class="price-update">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                                            <td>
+                                                <a href="?delete_cart_item=<?php echo $item['id']; ?>" 
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   onclick="return confirm('Are you sure you want to remove this item?');">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                        <td colspan="2"><strong>$<?php echo number_format($total, 2); ?></strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Order Summary -->
                 <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-body">
-                            <h4 class="mb-3">Order Summary</h4>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Subtotal</span>
-                                <span id="subtotal">₱2,399.98</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Shipping</span>
-                                <span id="shipping">₱0.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Tax</span>
-                                <span id="tax">₱192.00</span>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between mb-4">
-                                <strong>Total</strong>
-                                <strong id="total" class="price">₱2,591.98</strong>
-                            </div>
-
-                            <!-- Promo Code -->
-                            <div class="mb-4">
-                                <label for="promoCode" class="form-label">Promo Code</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="promoCode" placeholder="Enter code">
-                                    <button class="btn btn-secondary" type="button" id="applyPromo">Apply</button>
-                                </div>
-                                <div id="promoMessageContainer">
-                                    <small id="promoMessage" class="text-success" style="display: none;">Promo code
-                                        applied!</small>
-                                </div>
-                            </div>
-
-                            <!-- Checkout Button -->
-                            <a href="checkout.html" class="btn btn-primary w-100 py-2" id="checkoutBtn">
-                                Proceed to Checkout
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Secure Payment -->
                     <div class="card border-0 shadow-sm">
                         <div class="card-body">
-                            <h5 class="mb-3">Secure Payment</h5>
-                            <p class="text-muted small mb-2">We accept the following payment methods:</p>
-                            <div class="payment-methods">
-                                <i class="fab fa-cc-visa fa-2x me-2"></i>
-                                <i class="fab fa-cc-mastercard fa-2x me-2"></i>
-                                <i class="fab fa-cc-amex fa-2x me-2"></i>
-                                <i class="fab fa-cc-paypal fa-2x"></i>
+                            <h5 class="card-title">Order Summary</h5>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>$<?php echo number_format($total, 2); ?></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping:</span>
+                                <span>Free</span>
                             </div>
                             <hr>
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-lock text-success me-2"></i>
-                                <small class="text-muted">Your transaction is secured with SSL encryption</small>
+                            <div class="d-flex justify-content-between mb-3">
+                                <strong>Total:</strong>
+                                <strong>$<?php echo number_format($total, 2); ?></strong>
                             </div>
+                            <?php if (!empty($cart_items_array)): ?>
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="home.php" class="btn btn-outline-primary">
+                                        <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                                    </a>
+                                    <a href="check_out page.php" class="btn btn-primary">
+                                        <i class="fas fa-shopping-cart me-2"></i>Proceed to Checkout
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Recently Viewed Products -->
+            <!-- Add to Cart Section -->
             <div class="mt-5">
-                <h3 class="mb-4">Recently Viewed</h3>
+                <h3>Add Products to Cart</h3>
                 <div class="row">
-                    <!-- Product 1 -->
-                    <div class="col-lg-3 col-md-4 col-6">
-                        <div class="card product-card">
-                            <img src="https://placehold.co/300x300" class="card-img-top" alt="Product Image">
-                            <div class="card-body">
-                                <h5 class="card-title">Samsung Galaxy S25</h5>
-                                <p class="price mb-2">₱999.99</p>
-                                <a href="product_detail_page.html" class="btn btn-outline-primary btn-sm w-100">View
-                                    Details</a>
+                    <?php while ($product = $products->fetch_assoc()): ?>
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <img src="<?php echo htmlspecialchars($product['image_url']); ?>" 
+                                     class="card-img-top" alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                     style="height: 200px; object-fit: cover;">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                                    <p class="card-text">$<?php echo number_format($product['price'], 2); ?></p>
+                                    <form method="POST" class="d-flex align-items-center">
+                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                        <input type="number" name="quantity" class="form-control quantity-input me-2" 
+                                               value="1" min="1" max="<?php echo $product['stock']; ?>">
+                                        <button type="submit" name="add_to_cart" class="btn btn-primary">
+                                            <i class="fas fa-cart-plus"></i> Add
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Product 2 -->
-                    <div class="col-lg-3 col-md-4 col-6">
-                        <div class="card product-card">
-                            <img src="https://placehold.co/300x300" class="card-img-top" alt="Product Image">
-                            <div class="card-body">
-                                <h5 class="card-title">Dell XPS 15</h5>
-                                <p class="price mb-2">₱1,899.99</p>
-                                <a href="product_detail_page.html" class="btn btn-outline-primary btn-sm w-100">View
-                                    Details</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Product 3 -->
-                    <div class="col-lg-3 col-md-4 col-6">
-                        <div class="card product-card">
-                            <img src="https://placehold.co/300x300" class="card-img-top" alt="Product Image">
-                            <div class="card-body">
-                                <h5 class="card-title">iPhone 16</h5>
-                                <p class="price mb-2">₱899.99</p>
-                                <a href="product_detail_page.html" class="btn btn-outline-primary btn-sm w-100">View
-                                    Details</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Product 4 -->
-                    <div class="col-lg-3 col-md-4 col-6">
-                        <div class="card product-card">
-                            <img src="https://placehold.co/300x300" class="card-img-top" alt="Product Image">
-                            <div class="card-body">
-                                <h5 class="card-title">MacBook Pro 16</h5>
-                                <p class="price mb-2">₱2,499.99</p>
-                                <a href="product_detail_page.html" class="btn btn-outline-primary btn-sm w-100">View
-                                    Details</a>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endwhile; ?>
                 </div>
             </div>
         </div>
@@ -496,7 +528,40 @@
 
     <!-- Custom JS -->
     <script src="js/scripts.js"></script>
-    <script src="cart_config.js"></script>
+    <script>
+        // Update cart count badge
+        function updateCartCount() {
+            const cartCount = document.querySelector('.badge-cart');
+            const count = <?php echo count($cart_items_array); ?>;
+            cartCount.textContent = count;
+            if (count > 0) {
+                cartCount.classList.add('pulse');
+                setTimeout(() => cartCount.classList.remove('pulse'), 500);
+            }
+        }
+
+        // Initialize cart count
+        updateCartCount();
+
+        // Add animation to cart items
+        document.querySelectorAll('.cart-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.classList.contains('btn-outline-danger')) {
+                    this.classList.add('removing');
+                }
+            });
+        });
+
+        // Add animation to price updates
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const row = this.closest('tr');
+                const priceCell = row.querySelector('.price-update');
+                priceCell.classList.add('price-update');
+                setTimeout(() => priceCell.classList.remove('price-update'), 1000);
+            });
+        });
+    </script>
 </body>
 
 </html>
